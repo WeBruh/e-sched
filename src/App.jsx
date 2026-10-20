@@ -6,6 +6,7 @@ import Schedule from "./Schedule";
 import useLocalStorage from "./useLocalStorage";
 import banner from "./assets/miles-gwen.jpg";
 import History from "./History";
+import Backup from "./Backup";
 
 const TABS = ["Dashboard", "Subjects", "Schedule", "History"];
 
@@ -45,7 +46,13 @@ export default function App() {
         )}
 
         {tab === "History" && (
-  <History subjects={subjects} classes={classes} attendance={attendance} />
+  <>
+    <History subjects={subjects} classes={classes} attendance={attendance} />
+    <Backup
+      subjects={subjects} classes={classes} attendance={attendance}
+      setSubjects={setSubjects} setClasses={setClasses} setAttendance={setAttendance}
+    />
+  </>
 )}
       </main>
 

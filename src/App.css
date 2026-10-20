@@ -87,3 +87,8 @@
 
 .tag { display: inline-block; padding: 4px 12px; border-radius: 999px; font-size: 0.8rem; font-weight: bold; margin-top: 6px; }
 .note { margin-top: 6px; font-size: 0.9rem; opacity: 0.8; }
+
+.file-btn {
+  display: inline-block; padding: 8px 14px; margin-top: 8px;
+  border: 1px solid var(--lavender); border-radius: 999px; cursor: pointer;
+}
