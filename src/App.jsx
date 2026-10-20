@@ -5,6 +5,7 @@ import Subjects from "./Subjects";
 import Schedule from "./Schedule";
 import useLocalStorage from "./useLocalStorage";
 import banner from "./assets/miles-gwen.jpg";
+import History from "./History";
 
 const TABS = ["Dashboard", "Subjects", "Schedule", "History"];
 
@@ -43,7 +44,9 @@ export default function App() {
           <Schedule subjects={subjects} classes={classes} setClasses={setClasses} />
         )}
 
-        {tab === "History" && <p>This page is coming soon.</p>}
+        {tab === "History" && (
+  <History subjects={subjects} classes={classes} attendance={attendance} />
+)}
       </main>
 
       <nav className="bottom-nav">

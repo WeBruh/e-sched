@@ -84,3 +84,6 @@
 .pill.absent { background: #ffd0d6; color: #c0283c; }
 .pill.excused { background: #cfe4ff; color: #2a6fd6; }
 .pill.pending { background: #e6e4f5; color: #55537a; }
+
+.tag { display: inline-block; padding: 4px 12px; border-radius: 999px; font-size: 0.8rem; font-weight: bold; margin-top: 6px; }
+.note { margin-top: 6px; font-size: 0.9rem; opacity: 0.8; }
