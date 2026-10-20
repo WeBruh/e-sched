@@ -1,10 +1,14 @@
 import { useState } from "react";
 import "./App.css";
+import Subjects from "./Subjects";
+import useLocalStorage from "./useLocalStorage";
+
 
 const TABS = ["Dashboard", "Subjects", "Schedule", "History"];
 
 export default function App() {
   const [tab, setTab] = useState("Dashboard");
+  const [subjects, setSubjects] = useLocalStorage("subjects", []);
 
   return (
     <div className="app">
@@ -13,9 +17,13 @@ export default function App() {
       </header>
 
       <main className="content">
-        <h2>{tab}</h2>
-        <p>This page is coming soon.</p>
-      </main>
+  <h2>{tab}</h2>
+  {tab === "Subjects" ? (
+    <Subjects subjects={subjects} setSubjects={setSubjects} />
+  ) : (
+    <p>This page is coming soon.</p>
+  )}
+</main>
 
       <nav className="bottom-nav">
         {TABS.map((name) => (
