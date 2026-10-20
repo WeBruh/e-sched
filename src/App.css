@@ -1,85 +1,86 @@
-.app {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
+.app { min-height: 100vh; display: flex; flex-direction: column; }
 
 .header {
-  padding: 16px;
-  background: #4f46e5;
-  color: white;
+  padding: 18px;
   text-align: center;
+  color: white;
+  background: linear-gradient(135deg, var(--navy), var(--sky));
+  border-radius: 0 0 24px 24px;
 }
+.header h1 { margin: 0; font-size: 1.3rem; letter-spacing: 1px; }
 
-.header h1 {
-  margin: 0;
-  font-size: 1.3rem;
-}
+.content { flex: 1; padding: 16px; padding-bottom: 90px; }
 
-.content {
-  flex: 1;
-  padding: 16px;
-  padding-bottom: 80px; /* space so the nav doesn't cover content */
+.banner {
+  height: 160px;
+  border-radius: 20px;
+  background-size: cover;
+  background-position: center;
+  margin-bottom: 16px;
+  box-shadow: 0 6px 16px rgba(27, 31, 75, 0.25);
 }
 
 .bottom-nav {
   position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  bottom: 10px; left: 10px; right: 10px;
   display: flex;
+  gap: 6px;
+  padding: 6px;
   background: white;
-  border-top: 1px solid #ddd;
+  border-radius: 22px;
+  box-shadow: 0 4px 16px rgba(27, 31, 75, 0.2);
 }
-
 .bottom-nav button {
   flex: 1;
-  padding: 14px 4px;
+  padding: 12px 4px;
   border: none;
+  border-radius: 16px;
   background: none;
   font-size: 0.85rem;
-  color: #666;
+  color: var(--navy);
 }
-
 .bottom-nav button.active {
-  color: #4f46e5;
+  background: linear-gradient(135deg, var(--red), var(--pink));
+  color: white;
   font-weight: bold;
-  border-top: 3px solid #4f46e5;
 }
-
-
 
 .card {
   background: white;
-  padding: 12px;
+  padding: 14px;
   margin-bottom: 12px;
-  border-radius: 10px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border-radius: 18px;
+  border-left: 5px solid var(--teal);
+  box-shadow: 0 3px 10px rgba(27, 31, 75, 0.12);
 }
-
 .card input {
-  display: block;
-  width: 100%;
-  box-sizing: border-box;
-  padding: 10px;
-  margin-bottom: 8px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 1rem;
+  display: block; width: 100%; box-sizing: border-box;
+  padding: 10px; margin-bottom: 8px;
+  border: 1px solid var(--lavender);
+  border-radius: 12px; font-size: 1rem;
 }
-
 .card button {
-  padding: 8px 12px;
-  margin: 8px 8px 0 0;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  background: white;
+  padding: 8px 14px; margin: 8px 8px 0 0;
+  border: 1px solid var(--lavender);
+  border-radius: 999px; background: white; color: var(--navy);
+}
+.card button.primary {
+  width: 100%; margin: 0; border: none; color: white;
+  background: linear-gradient(135deg, var(--navy), var(--sky));
 }
 
-.card button.primary {
-  background: #4f46e5;
-  color: white;
-  border: none;
-  width: 100%;
-  margin: 0;
+.card select {
+  display: block; width: 100%; box-sizing: border-box;
+  padding: 10px; margin-bottom: 8px;
+  border: 1px solid var(--lavender);
+  border-radius: 12px; font-size: 1rem; background: white;
 }
+
+.pills { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0; }
+.card .pills button { margin: 0; border: none; opacity: 0.55; font-size: 0.8rem; }
+.card .pills button.on { opacity: 1; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2); font-weight: bold; }
+.pill.present { background: #c8f5d4; color: #1f8f4e; }
+.pill.late { background: #f1f9a8; color: #7a8f00; }
+.pill.absent { background: #ffd0d6; color: #c0283c; }
+.pill.excused { background: #cfe4ff; color: #2a6fd6; }
+.pill.pending { background: #e6e4f5; color: #55537a; }

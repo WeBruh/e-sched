@@ -1,14 +1,18 @@
 import { useState } from "react";
 import "./App.css";
+import Dashboard from "./Dashboard";
 import Subjects from "./Subjects";
+import Schedule from "./Schedule";
 import useLocalStorage from "./useLocalStorage";
-
+import banner from "./assets/miles-gwen.jpg";
 
 const TABS = ["Dashboard", "Subjects", "Schedule", "History"];
 
 export default function App() {
   const [tab, setTab] = useState("Dashboard");
   const [subjects, setSubjects] = useLocalStorage("subjects", []);
+  const [classes, setClasses] = useLocalStorage("classes", []);
+  const [attendance, setAttendance] = useLocalStorage("attendance", {});
 
   return (
     <div className="app">
@@ -17,13 +21,30 @@ export default function App() {
       </header>
 
       <main className="content">
-  <h2>{tab}</h2>
-  {tab === "Subjects" ? (
-    <Subjects subjects={subjects} setSubjects={setSubjects} />
-  ) : (
-    <p>This page is coming soon.</p>
-  )}
-</main>
+        <h2>{tab}</h2>
+
+        {tab === "Dashboard" && (
+          <>
+            <div className="banner" style={{ backgroundImage: `url(${banner})` }} />
+            <Dashboard
+              subjects={subjects}
+              classes={classes}
+              attendance={attendance}
+              setAttendance={setAttendance}
+            />
+          </>
+        )}
+
+        {tab === "Subjects" && (
+          <Subjects subjects={subjects} setSubjects={setSubjects} />
+        )}
+
+        {tab === "Schedule" && (
+          <Schedule subjects={subjects} classes={classes} setClasses={setClasses} />
+        )}
+
+        {tab === "History" && <p>This page is coming soon.</p>}
+      </main>
 
       <nav className="bottom-nav">
         {TABS.map((name) => (
