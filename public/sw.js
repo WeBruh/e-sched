@@ -1,4 +1,3 @@
-const CACHE = "esched-v2";
 
 async function precache() {
   const cache = await caches.open(CACHE);
@@ -8,7 +7,14 @@ async function precache() {
   await cache.put("/", res);
   const assets = [...html.matchAll(/(?:src|href)="(\/[^"]+)"/g)].map((m) => m[1]);
   const extras = ["/icon-192.png", "/icon-512.png", "/manifest.webmanifest"];
-  await Promise.all([...assets, ...extras].map((u) => cache.add(u).catch(() => {})));
+  const files = [...assets, ...extras];
+  for (const u of assets.filter((a) => a.endsWith(".css"))) {
+    try {
+      const css = await (await fetch(u)).text();
+      [...css.matchAll(/url\((\/[^)]+)\)/g)].forEach((m) => files.push(m[1]));
+    } catch {}
+  }
+  await Promise.all(files.map((u) => cache.add(u).catch(() => {})));
 }
 
 self.addEventListener("install", (e) => {

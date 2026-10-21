@@ -2,12 +2,14 @@ import { useEffect, useState } from "react";
 import useNow from "./useNow";
 import { Line, Donut, Bars, Gauge } from "./Charts";
 import { isoDate, toDate, fmtCountdown, distanceMeters, summarize, weekStart } from "./stats";
+import { askPermission, notify, once } from "./notifications";
+import { downloadICS } from "./calendar";
 
 const DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-const WEEKDAYS = DAY_NAMES.slice(1).concat([]).slice(0, 6);
 const MIN = 60000;
-const OPEN_BEFORE = 15 * MIN; // check-in opens 15 min before class
-const OUT_AFTER = 30 * MIN;   // check-out allowed until 30 min after class
+const OPEN_BEFORE = 15 * MIN;
+const OUT_AFTER = 30 * MIN;
+const TARGET = 80;
 
 function getPosition() {
   return new Promise((resolve, reject) => {
@@ -26,6 +28,15 @@ export default function Dashboard({ subjects, classes, attendance, setAttendance
   const now = useNow();
   const [msg, setMsg] = useState("");
   const [busy, setBusy] = useState(false);
+  const [online, setOnline] = useState(navigator.onLine);
+
+  useEffect(() => {
+    const on = () => setOnline(true), off = () => setOnline(false);
+    window.addEventListener("online", on);
+    window.addEventListener("offline", off);
+    return () => { window.removeEventListener("online", on); window.removeEventListener("offline", off); };
+  }, []);
+
   const date = isoDate(now);
   const dayName = DAY_NAMES[now.getDay()];
   const grace = settings.grace * MIN;
@@ -45,7 +56,6 @@ export default function Dashboard({ subjects, classes, attendance, setAttendance
 
   const isOpen = (r) => !r || !r.status || r.status === "Pending";
 
-  // Classes that ended with no check-in become Absent automatically
   useEffect(() => {
     const missing = todays.filter((c) => now >= c.endAt && isOpen(attendance[keyOf(c)]));
     if (!missing.length) return;
@@ -59,13 +69,28 @@ export default function Dashboard({ subjects, classes, attendance, setAttendance
     });
   });
 
+  useEffect(() => {
+    if (!settings.notify) return;
+    const t = now.getTime();
+    const within = (at) => t >= at && t < at + 2 * MIN;
+    todays.forEach((c) => {
+      const r = recOf(c);
+      const s = c.startAt.getTime(), e = c.endAt.getTime();
+      const room = c.subject.room ? ` • Room ${c.subject.room}` : "";
+      const k = keyOf(c);
+      if (!r.checkIn && r.status !== "Excused" && within(s - 10 * MIN) && once(`${k}_pre`))
+        notify(`${c.subject.name} starts in 10 min`, `${c.start}${room}. Check-in is open.`, `${k}_pre`);
+      if (!r.checkIn && r.status !== "Excused" && within(s + grace - 5 * MIN) && once(`${k}_late`))
+        notify("Check in now", `You'll be marked late for ${c.subject.name} in 5 minutes.`, `${k}_late`);
+      if (r.checkIn && !r.checkOut && within(e - 5 * MIN) && once(`${k}_out`))
+        notify("Almost done", `Remember to check out of ${c.subject.name}.`, `${k}_out`);
+    });
+  });
+
   function save(c, changes) {
     setAttendance((prev) => {
       const old = prev[keyOf(c)] || {};
-      return {
-        ...prev,
-        [keyOf(c)]: { classId: c.id, date, ...old, status: old.status || "Pending", ...changes },
-      };
+      return { ...prev, [keyOf(c)]: { classId: c.id, date, ...old, status: old.status || "Pending", ...changes } };
     });
   }
 
@@ -89,6 +114,7 @@ export default function Dashboard({ subjects, classes, attendance, setAttendance
         throw new Error("Check-in is closed for this class.");
       const status = at <= c.startAt.getTime() + grace ? "Present" : "Late";
       save(c, { status, checkIn: new Date(at).toISOString(), verified: true, distance, auto: false });
+      navigator.vibrate?.(80);
       setMsg(`Checked in: ${status}`);
     } catch (e) { setMsg(e.message); }
     setBusy(false);
@@ -101,6 +127,7 @@ export default function Dashboard({ subjects, classes, attendance, setAttendance
       const at = new Date().getTime();
       const early = at < c.endAt.getTime() - 5 * MIN;
       save(c, { checkOut: new Date(at).toISOString(), leftEarly: early });
+      navigator.vibrate?.(80);
       setMsg(early ? "Checked out (left early)" : "Checked out");
     } catch (e) { setMsg(e.message); }
     setBusy(false);
@@ -123,6 +150,17 @@ export default function Dashboard({ subjects, classes, attendance, setAttendance
     setBusy(false);
   }
 
+  async function toggleNotify() {
+    if (settings.notify) return setSettings({ ...settings, notify: false });
+    const p = await askPermission();
+    if (p === "granted") {
+      setSettings({ ...settings, notify: true });
+      notify("Reminders are on", "You'll get alerts before class and before you're marked late.", "test");
+    } else {
+      setMsg(p === "unsupported" ? "This browser doesn't support notifications." : "Notifications are blocked. Allow them in your phone or browser settings.");
+    }
+  }
+
   function actions(c) {
     const r = recOf(c);
     const t = now.getTime();
@@ -133,35 +171,67 @@ export default function Dashboard({ subjects, classes, attendance, setAttendance
       <div className="actions">
         {canIn && <button className="primary" disabled={busy} onClick={() => checkIn(c)}>Check in</button>}
         {canOut && <button className="primary" disabled={busy} onClick={() => checkOut(c)}>Check out</button>}
-        {canExcuse && <button disabled={busy} onClick={() => excuse(c)}>Mark excused</button>}
+        {canExcuse && <button disabled={busy} onClick={() => excuse(c)}>Excused</button>}
       </div>
     );
   }
 
   function statusLine(c) {
     const r = recOf(c);
-    const st = r.status || "Pending";
     return (
-      <div>
-        <span className={`pill ${st.toLowerCase()} tag`}>{st}</span>
-        {r.verified && <span className="verified"> ✓ verified</span>}
-        {r.checkIn && (
-          <div className="note">
-            In {fmtTime(r.checkIn)}{r.checkOut && ` • Out ${fmtTime(r.checkOut)}`}{r.leftEarly && " • left early"}
-          </div>
-        )}
-        {r.note && <div className="note">Note: {r.note}</div>}
+      <div className="note">
+        {r.status || "Pending"}
+        {r.verified && " • ✓ verified"}
+        {r.checkIn && ` • In ${fmtTime(r.checkIn)}`}
+        {r.checkOut && ` • Out ${fmtTime(r.checkOut)}`}
+        {r.leftEarly && " • left early"}
+        {r.note && ` • ${r.note}`}
       </div>
     );
   }
 
-  // ----- current / next -----
   const focus = todays.find((c) => now < c.endAt);
   const next = todays.find((c) => c !== focus && c.startAt > now);
   const fr = focus ? recOf(focus) : {};
   const lateAt = focus ? new Date(focus.startAt.getTime() + grace) : null;
+  const pendingOut = todays.find(
+    (c) => c !== focus && recOf(c).checkIn && !recOf(c).checkOut && now.getTime() < c.endAt.getTime() + OUT_AFTER
+  );
+  const upcoming = todays.filter((c) => c.startAt > now);
 
-  // ----- chart data -----
+  function alertBar() {
+    if (!focus || fr.status === "Excused") return null;
+    const t = now.getTime();
+    const room = focus.subject.room ? `Room ${focus.subject.room}` : "";
+    if (fr.checkIn)
+      return (
+        <div className="alert ok">
+          <div><div>Checked in ✓ verified</div><div className="big">{fmtCountdown(focus.endAt - now)}</div></div>
+          <div className="side">until class ends</div>
+        </div>
+      );
+    if (t < focus.startAt.getTime() - OPEN_BEFORE)
+      return (
+        <div className="alert info">
+          <div><div>Check-in opens in</div><div className="big">{fmtCountdown(focus.startAt.getTime() - OPEN_BEFORE - t)}</div></div>
+          <div className="side">{focus.subject.name}<br />{room}</div>
+        </div>
+      );
+    if (t < lateAt.getTime())
+      return (
+        <div className="alert warn">
+          <div><div>Check in before you're marked late</div><div className="big">{fmtCountdown(lateAt - now)}</div></div>
+          <div className="side">{focus.subject.name}<br />{room}</div>
+        </div>
+      );
+    return (
+      <div className="alert late">
+        <div><div>You're late. Check in now</div><div className="big">{fmtCountdown(now - lateAt)}</div></div>
+        <div className="side">{focus.subject.name}<br />{room}</div>
+      </div>
+    );
+  }
+
   const rows = Object.values(attendance)
     .map((r) => {
       const cls = classes.find((c) => c.id === r.classId);
@@ -183,47 +253,83 @@ export default function Dashboard({ subjects, classes, attendance, setAttendance
   const byDay = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].map((d) => ({
     label: d.slice(0, 3), value: summarize(rows.filter((r) => r.cls.day === d)).percent,
   }));
+  const lowest = perSubject.filter((p) => p.percent !== null).sort((a, b) => a.percent - b.percent)[0];
 
   return (
     <div>
+      {!online && <div className="offline">Offline • everything is saved on this phone</div>}
+
+      {alertBar()}
+      {msg && <div className="msg">{msg}</div>}
+
       <div className="card focus-card">
         {focus ? (
           <>
-            <small>{now >= focus.startAt ? "Current subject" : "Up next"}</small>
-            <h3>{focus.subject.name}</h3>
-            <div>{focus.start} – {focus.end} {focus.subject.room && `• Room ${focus.subject.room}`}</div>
-
-            <div className="timers">
-              {now < focus.startAt && <div><small>Starts in</small><b>{fmtCountdown(focus.startAt - now)}</b></div>}
-              <div><small>Ends in</small><b>{fmtCountdown(focus.endAt - now)}</b></div>
-              {!fr.checkIn && fr.status !== "Excused" && (
-                now < lateAt
-                  ? <div className="warn"><small>Late in</small><b>{fmtCountdown(lateAt - now)}</b></div>
-                  : <div className="late"><small>Status</small><b>Late</b></div>
-              )}
-              {next && <div><small>Next: {next.subject.name}</small><b>{fmtCountdown(next.startAt - now)}</b></div>}
+            <div className="row">
+              <div>
+                <small>{now >= focus.startAt ? "Current subject" : "Up next"}</small>
+                <div className="subj">{focus.subject.name}</div>
+                <small>{focus.start} – {focus.end}{focus.subject.room && ` • Room ${focus.subject.room}`}</small>
+              </div>
+              <div className="right">
+                <small>Ends in</small>
+                <div className="num">{fmtCountdown(focus.endAt - now)}</div>
+              </div>
             </div>
-
-            {statusLine(focus)}
+            {fr.checkIn && statusLine(focus)}
             {actions(focus)}
+            {next && (
+              <div className="nextrow">
+                <span>Next: {next.subject.name}, {next.start}</span>
+                <b>in {fmtCountdown(next.startAt - now)}</b>
+              </div>
+            )}
           </>
         ) : (
           <p>No more classes today.</p>
         )}
-        {msg && <div className="msg">{msg}</div>}
       </div>
 
-      {todays.filter((c) => c !== focus).length > 0 && <h3>Today, {dayName}</h3>}
-      {todays.filter((c) => c !== focus).map((c) => (
-        <div className="card" key={c.id}>
-          <strong>{c.subject.name}</strong>
-          <div>{c.start} – {c.end}</div>
-          {statusLine(c)}
-          {actions(c)}
+      {pendingOut && (
+        <div className="card">
+          <strong>Check out of {pendingOut.subject.name}</strong>
+          {actions(pendingOut)}
         </div>
-      ))}
+      )}
 
-      <div className="grid">
+      <div className="kpis">
+        <div className="kp pct"><b>{all.percent === null ? "–" : `${all.percent}%`}</b><small>Attendance</small></div>
+        <div className="kp abs"><b>{all.absent}</b><small>Absent</small></div>
+        <div className="kp lat"><b>{all.late}</b><small>Late</small></div>
+        <div className="kp exc"><b>{all.excused}</b><small>Excused</small></div>
+      </div>
+
+      {lowest && lowest.percent < TARGET && (
+        <div className="warn-chip">
+          <b>{lowest.label} is at {lowest.percent}%</b>
+          <small>Below the {TARGET}% target. Another absence will hurt.</small>
+        </div>
+      )}
+
+      {todays.length > 0 && (
+        <div className="strip">
+          {todays.map((c) => {
+            const done = now >= c.endAt;
+            const live = now >= c.startAt && !done;
+            const label = done ? "Done" : live ? "Now" : c === upcoming[0] ? "Next" : "Later";
+            return (
+              <div key={c.id} className={`chip ${live ? "on" : ""}`}>
+                <small>{label}</small>
+                <b>{c.subject.name}</b>
+                <small>{c.start}{done && ` • ${recOf(c).status || "Pending"}`}</small>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <div className="section-head"><span>Insights</span><small>Swipe →</small></div>
+      <div className="sw">
         <div className="card chart">
           <div className="chart-title">Weekly attendance %</div>
           <Line data={weeks} />
@@ -244,33 +350,33 @@ export default function Dashboard({ subjects, classes, attendance, setAttendance
           <div className="chart-title">Absences by subject</div>
           <Bars data={perSubject.map((p) => ({ label: p.label, value: p.absent }))} />
         </div>
-      </div>
-
-      <div className="card chart">
-        <div className="chart-title">Attendance per subject</div>
-        <div className="gauges">
-          {perSubject.map((p) => (
-            <div key={p.id} className={focus && focus.subject.id === p.id ? "g focus" : "g"}>
-              <Gauge value={p.percent} />
-              <div>{p.label}</div>
-            </div>
-          ))}
+        <div className="card chart">
+          <div className="chart-title">Attendance per subject</div>
+          <div className="gauges">
+            {perSubject.map((p) => (
+              <div key={p.id} className={focus && focus.subject.id === p.id ? "g focus" : "g"}>
+                <Gauge value={p.percent} />
+                <div>{p.label}</div>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
-
-      <div className="card chart">
-        <div className="chart-title">Attendance by weekday</div>
-        <div className="weekdays">
-          {byDay.map((d) => (
-            <div key={d.label}><small>{d.label}</small><b>{d.value === null ? "–" : `${d.value}%`}</b></div>
-          ))}
+        <div className="card chart">
+          <div className="chart-title">By weekday</div>
+          <div className="weekdays">
+            {byDay.map((d) => (
+              <div key={d.label}><small>{d.label}</small><b>{d.value === null ? "–" : `${d.value}%`}</b></div>
+            ))}
+          </div>
         </div>
       </div>
 
       <div className="card">
-        <strong>Check-in settings</strong>
+        <strong>Settings</strong>
         <div className="note">{located ? "School location is set." : "School location not set."}</div>
         <button disabled={busy} onClick={setSchool}>Set school location to where I am now</button>
+        <button onClick={toggleNotify}>{settings.notify ? "Turn reminders off" : "Turn on reminders"}</button>
+        <button onClick={() => downloadICS(classes, subjects)}>Add classes to phone calendar</button>
         <label>
           Allowed distance (m)
           <input type="number" min="50" value={settings.radius}

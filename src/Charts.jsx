@@ -1,7 +1,7 @@
 const C = { navy: "#1b1f4b", red: "#e23b4e", teal: "#3fb8c9", sky: "#8fa8e8", grid: "#e6e4f5" };
 
 export function Line({ data }) {
-  const W = 300, H = 160, L = 30, R = 10, T = 10, B = 25;
+  const W = 230, H = 130, L = 26, R = 8, T = 8, B = 22;
   const x = (i) => L + (data.length > 1 ? (i * (W - L - R)) / (data.length - 1) : 0);
   const y = (v) => T + (H - T - B) * (1 - v / 100);
   const pts = data.map((d, i) => (d.value === null ? null : [x(i), y(d.value)])).filter(Boolean);
@@ -10,13 +10,13 @@ export function Line({ data }) {
       {[0, 50, 100].map((v) => (
         <g key={v}>
           <line x1={L} x2={W - R} y1={y(v)} y2={y(v)} stroke={C.grid} />
-          <text x={L - 6} y={y(v) + 4} fontSize="10" textAnchor="end" fill={C.navy}>{v}</text>
+          <text x={L - 5} y={y(v) + 4} fontSize="11" textAnchor="end" fill={C.navy}>{v}</text>
         </g>
       ))}
       <polyline points={pts.map((p) => p.join(",")).join(" ")} fill="none" stroke={C.navy} strokeWidth="2.5" />
       {pts.map((p, i) => <rect key={i} x={p[0] - 4} y={p[1] - 4} width="8" height="8" fill={C.red} />)}
       {data.map((d, i) => (
-        <text key={i} x={x(i)} y={H - 8} fontSize="10" textAnchor="middle" fill={C.navy}>{d.label}</text>
+        <text key={i} x={x(i)} y={H - 5} fontSize="11" textAnchor="middle" fill={C.navy}>{d.label}</text>
       ))}
     </svg>
   );
@@ -39,7 +39,7 @@ export function Donut({ slices, center }) {
           offset += len;
           return el;
         })}
-        <text x="50" y="55" textAnchor="middle" fontSize="16" fontWeight="bold" fill={C.navy}>{center}</text>
+        <text x="50" y="55" textAnchor="middle" fontSize="16" fontWeight="500" fill={C.navy}>{center}</text>
       </svg>
       <ul className="legend">
         {slices.map((s) => (
@@ -51,19 +51,20 @@ export function Donut({ slices, center }) {
 }
 
 export function Bars({ data }) {
-  const W = 300, H = 160, B = 25, T = 15;
+  const W = 230, H = 130, B = 22, T = 16;
   const max = Math.max(1, ...data.map((d) => d.value));
-  const bw = data.length ? (W - 20) / data.length : 0;
+  const bw = data.length ? (W - 16) / data.length : 0;
+  const w = Math.min(40, bw - 12);
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="svg">
       {data.map((d, i) => {
         const h = ((H - B - T) * d.value) / max;
-        const x = 10 + i * bw;
+        const cx = 8 + i * bw + bw / 2;
         return (
           <g key={i}>
-            <rect x={x + 4} y={H - B - h} width={Math.max(bw - 8, 1)} height={h} rx="4" fill={C.sky} />
-            <text x={x + bw / 2} y={H - B - h - 4} textAnchor="middle" fontSize="11" fontWeight="bold" fill={C.navy}>{d.value}</text>
-            <text x={x + bw / 2} y={H - 8} textAnchor="middle" fontSize="10" fill={C.navy}>{d.label.slice(0, 7)}</text>
+            <rect x={cx - w / 2} y={H - B - h} width={w} height={h} rx="4" fill={C.sky} />
+            <text x={cx} y={H - B - h - 4} textAnchor="middle" fontSize="11" fontWeight="500" fill={C.navy}>{d.value}</text>
+            <text x={cx} y={H - 5} textAnchor="middle" fontSize="11" fill={C.navy}>{d.label.slice(0, 7)}</text>
           </g>
         );
       })}
@@ -79,7 +80,7 @@ export function Gauge({ value }) {
       <path d="M10 50 A40 40 0 0 1 90 50" fill="none" stroke={C.grid} strokeWidth="12" />
       <path d="M10 50 A40 40 0 0 1 90 50" fill="none" stroke={v >= 80 ? C.teal : C.red}
         strokeWidth="12" strokeDasharray={`${(len * v) / 100} ${len}`} />
-      <text x="50" y="48" textAnchor="middle" fontSize="16" fontWeight="bold" fill={C.navy}>
+      <text x="50" y="48" textAnchor="middle" fontSize="16" fontWeight="500" fill={C.navy}>
         {value === null ? "–" : `${value}%`}
       </text>
     </svg>
