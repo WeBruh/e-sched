@@ -14,7 +14,7 @@ import Settings from "./Settings";
 import AlertPopup from "./AlertPopup";
 import { configureAlerts } from "./notifications";
 
-const TABS = ["Dashboard", "Subjects", "Schedule", "Tasks", "History", "Settings"];
+const TABS = ["Dashboard", "Subjects", "Schedule", "Tasks", "History"];
 
 export default function App() {
   const [tab, setTab] = useState("Dashboard");
