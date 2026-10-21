@@ -1,4 +1,4 @@
-const C = { navy: "#1b1f4b", red: "#e23b4e", teal: "#3fb8c9", sky: "#8fa8e8", grid: "#e6e4f5" };
+const C = { navy: "currentColor", red: "#e8202f", teal: "#19d3c5", sky: "#ff2e93", grid: "rgba(255,255,255,0.14)" };
 
 export function Line({ data }) {
   const W = 230, H = 130, L = 26, R = 8, T = 8, B = 22;

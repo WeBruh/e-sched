@@ -339,10 +339,10 @@ export default function Dashboard({ subjects, classes, attendance, setAttendance
           <Donut
             center={all.percent === null ? "–" : `${all.percent}%`}
             slices={[
-              { label: "Present", value: all.present, color: "#3fb8c9" },
-              { label: "Late", value: all.late, color: "#8fa8e8" },
-              { label: "Absent", value: all.absent, color: "#e23b4e" },
-              { label: "Excused", value: all.excused, color: "#f5b3c8" },
+{ label: "Present", value: all.present, color: "#19d3c5" },
+{ label: "Late", value: all.late, color: "#ffd23f" },
+{ label: "Absent", value: all.absent, color: "#e8202f" },
+{ label: "Excused", value: all.excused, color: "#ff2e93" },
             ]}
           />
         </div>
