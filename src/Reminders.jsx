@@ -12,10 +12,10 @@ export default function Reminders({ tasks, enabled }) {
     tasks.forEach((k) => {
       if (k.done) return;
       const at = toDate(k.date, k.time).getTime();
-      if (within(at) && once(`task_${k.id}`)) notify("Reminder", k.title, `task_${k.id}`);
+      if (within(at) && once(`task_${k.id}`)) notify(k.title, `Due ${k.time}`, `task_${k.id}`);
       if (k.evening) {
         const eve = toDate(k.date, "20:00").getTime() - 24 * 3600000;
-        if (within(eve) && once(`task_${k.id}_eve`)) notify("Tomorrow", k.title, `task_${k.id}_eve`);
+        if (within(eve) && once(`task_${k.id}_eve`)) notify(`Tomorrow: ${k.title}`, `Due ${k.time}`, `task_${k.id}_eve`);
       }
     });
   });

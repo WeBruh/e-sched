@@ -10,19 +10,38 @@ import History from "./History";
 import Backup from "./Backup";
 import Tasks from "./Tasks";
 import Reminders from "./Reminders";
+import Settings from "./Settings";
+import AlertPopup from "./AlertPopup";
+import { configureAlerts } from "./notifications";
 
-
-
-const TABS = ["Dashboard", "Subjects", "Schedule", "Tasks", "History"];
+const TABS = ["Dashboard", "Subjects", "Schedule", "Tasks", "History", "Settings"];
 
 export default function App() {
   const [tab, setTab] = useState("Dashboard");
   const [subjects, setSubjects] = useLocalStorage("subjects", []);
   const [classes, setClasses] = useLocalStorage("classes", []);
   const [attendance, setAttendance] = useLocalStorage("attendance", {});
-  const [settings, setSettings] = useLocalStorage("settings", { lat: null, lng: null, radius: 150, grace: 10 });
+  const [settings, setSettings] = useLocalStorage("settings", {
+    lat: null,
+    lng: null,
+    radius: 150,
+    grace: 10,
+    notify: false,
+    alertMode: "manual",
+    alertMinutes: 2,
+  });
   const [tasks, setTasks] = useLocalStorage("tasks", []);
   const [bannerOk, setBannerOk] = useState(false);
+
+  useEffect(() => {
+  configureAlerts({ mode: settings.alertMode || "manual", minutes: settings.alertMinutes || 2 });
+}, [settings.alertMode, settings.alertMinutes]);
+
+useEffect(() => {
+  const block = (e) => { if (!/^(INPUT|TEXTAREA)$/.test(e.target.tagName)) e.preventDefault(); };
+  document.addEventListener("contextmenu", block);
+  return () => document.removeEventListener("contextmenu", block);
+}, []);
 
 useEffect(() => {
   window.addEventListener("pointerdown", unlockAudio, { once: true });
@@ -35,9 +54,19 @@ useEffect(() => {
   return (
     <div className="app">
       <Reminders tasks={tasks} enabled={settings.notify} />
+      <AlertPopup settings={settings} />
       <header className="header">
-        <h1>E-Sched</h1>
-      </header>
+  <h1>E-Sched</h1>
+  <button className="gear" aria-label="Settings" onClick={() => setTab("Settings")}>
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.6">
+      <circle cx="12" cy="12" r="3" />
+      <circle cx="12" cy="12" r="6.5" />
+      {[0, 45, 90, 135, 180, 225, 270, 315].map((a) => (
+        <rect key={a} x="10.6" y="1.8" width="2.8" height="3.6" rx="1" fill="currentColor" stroke="none" transform={`rotate(${a} 12 12)`} />
+      ))}
+    </svg>
+  </button>
+</header>
 
       <main className="content" key={tab}>
         <h2>{tab}</h2>
@@ -57,6 +86,9 @@ useEffect(() => {
       setSettings={setSettings}
     />
   </>
+)}
+{tab === "Settings" && (
+  <Settings settings={settings} setSettings={setSettings} classes={classes} subjects={subjects} onBack={() => setTab("Dashboard")} />
 )}
 
         {tab === "Tasks" && <Tasks tasks={tasks} setTasks={setTasks} />}

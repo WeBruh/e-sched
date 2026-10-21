@@ -1,27 +1,27 @@
-import { playChime } from "./sound";
-
-const PATTERN = [300, 120, 300, 120, 600];
+let cfg = { mode: "manual", minutes: 2 };
+export const configureAlerts = (c) => { cfg = c; };
 
 export async function askPermission() {
   if (!("Notification" in window)) return "unsupported";
   return Notification.requestPermission();
 }
 
-export function alertUser() {
-  if (document.visibilityState === "visible") playChime();
-  navigator.vibrate?.(PATTERN);
-}
-
 export async function notify(title, body, tag) {
-  alertUser();
+  const kind = tag.startsWith("task") ? "Task reminder" : tag === "test" ? "Test" : "Class alert";
+  window.dispatchEvent(new CustomEvent("esched-alert", { detail: { title, body, kind } }));
+
   if (!("Notification" in window) || Notification.permission !== "granted") return;
+  const manual = cfg.mode === "manual";
   const opts = {
     body, tag, icon: "/icon-192.png", badge: "/icon-192.png",
-    vibrate: PATTERN, renotify: true, requireInteraction: true, silent: false,
+    vibrate: [300, 120, 300, 120, 600], renotify: true, requireInteraction: manual, silent: false,
   };
   const reg = "serviceWorker" in navigator ? await navigator.serviceWorker.getRegistration() : null;
-  if (reg) reg.showNotification(title, opts);
-  else new Notification(title, opts);
+  if (reg) {
+    await reg.showNotification(title, opts);
+    if (!manual)
+      setTimeout(async () => (await reg.getNotifications({ tag })).forEach((n) => n.close()), cfg.minutes * 60000);
+  } else new Notification(title, opts);
 }
 
 export function once(id) {

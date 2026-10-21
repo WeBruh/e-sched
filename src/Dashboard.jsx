@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import useNow from "./useNow";
 import { Line, Donut, Bars, Gauge } from "./Charts";
 import { isoDate, toDate, fmtCountdown, distanceMeters, summarize, weekStart } from "./stats";
@@ -6,6 +6,7 @@ import { askPermission, notify, once } from "./notifications";
 import { downloadICS } from "./calendar";
 import { motivation } from "./motivation";
 import { unlockAudio } from "./sound";
+import RecordSheet from "./RecordSheet";
 
 const DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const MIN = 60000;
@@ -65,6 +66,26 @@ function isoFromCalendar(date, offset = 0) {
 }
 
 export default function Dashboard({ subjects, classes, attendance, setAttendance, settings, setSettings, tasks, setTasks }) {
+  const [sheet, setSheet] = useState(null);
+const swRef = useRef(null);
+
+useEffect(() => {
+  const root = swRef.current;
+  if (!root) return;
+  const cards = [...root.querySelectorAll(".chart")];
+  const io = new IntersectionObserver(
+    (entries) => entries.forEach((e) => e.target.classList.toggle("play", e.isIntersecting && document.visibilityState === "visible")),
+    { threshold: 0.4 }
+  );
+  cards.forEach((c) => io.observe(c));
+  const vis = () => cards.forEach((c) => {
+    const r = c.getBoundingClientRect();
+    c.classList.toggle("play", document.visibilityState === "visible" && r.right > 0 && r.left < innerWidth && r.bottom > 0 && r.top < innerHeight);
+  });
+  document.addEventListener("visibilitychange", vis);
+  return () => { io.disconnect(); document.removeEventListener("visibilitychange", vis); };
+}, []);
+
   const now = useNow();
   const [msg, setMsg] = useState("");
   const [busy, setBusy] = useState(false);
@@ -289,7 +310,7 @@ const due = [
     .filter((r) => r && r.status && r.status !== "Pending");
 
   const all = summarize(rows);
-  const weeks = [5, 4, 3, 2, 1, 0].map((k) => {
+  const weeks = [7, 6, 5, 4, 3, 2, 1, 0].map((k) => {
     const start = weekStart(dateFromMs(now.getTime() - k * 7 * 86400000));
     const end = dateFromMs(start.getTime() + 7 * 86400000);
     const inWeek = rows.filter((r) => { const d = toDate(r.date, "00:00"); return d >= start && d < end; });
@@ -363,10 +384,9 @@ const due = [
   </div>
   )}
       <div className="kpis">
-        <div className="kp pct"><b>{all.percent === null ? "–" : `${all.percent}%`}</b><small>Attendance</small></div>
-        <div className="kp abs"><b>{all.absent}</b><small>Absent</small></div>
-        <div className="kp lat"><b>{all.late}</b><small>Late</small></div>
-        <div className="kp exc"><b>{all.excused}</b><small>Excused</small></div>
+<button className="kp abs" onClick={() => setSheet("Absent")}><b>{all.absent}</b><small>Absent</small></button>
+<button className="kp lat" onClick={() => setSheet("Late")}><b>{all.late}</b><small>Late</small></button>
+<button className="kp exc" onClick={() => setSheet("Excused")}><b>{all.excused}</b><small>Excused</small></button>
       </div>
 
       {lowest && lowest.percent < TARGET && (
@@ -394,10 +414,11 @@ const due = [
       )}
 
       <div className="section-head"><span>Insights</span><small>Swipe →</small></div>
-      <div className="sw">
+      <div className="sw" ref={swRef}>
         <div className="card chart">
           <div className="chart-title">Weekly attendance %</div>
           <Line data={weeks} />
+          {sheet && <RecordSheet status={sheet} rows={rows} setAttendance={setAttendance} onClose={() => setSheet(null)} />}
         </div>
         <div className="card chart">
           <div className="chart-title">Status breakdown</div>
@@ -434,27 +455,6 @@ const due = [
             ))}
           </div>
         </div>
-      </div>
-
-      <div className="card">
-        <strong>Settings</strong>
-        <div className="note">{located ? "School location is set." : "School location not set."}</div>
-        <button disabled={busy} onClick={setSchool}>Set school location to where I am now</button>
-        <button onClick={toggleNotify}>{settings.notify ? "Turn reminders off" : "Turn on reminders"}</button>
-        <button onClick={() => { unlockAudio(); notify("Test reminder", "Sound and vibration check", "test"); }}>
-  Test sound and vibration
-</button>
-        <button onClick={() => downloadICS(classes, subjects)}>Add classes to phone calendar</button>
-        <label>
-          Allowed distance (m)
-          <input type="number" min="50" value={settings.radius}
-            onChange={(e) => setSettings({ ...settings, radius: Number(e.target.value) || 0 })} />
-        </label>
-        <label>
-          Late after (minutes from start)
-          <input type="number" min="0" value={settings.grace}
-            onChange={(e) => setSettings({ ...settings, grace: Number(e.target.value) || 0 })} />
-        </label>
       </div>
     </div>
   );
