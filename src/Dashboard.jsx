@@ -5,6 +5,7 @@ import { isoDate, toDate, fmtCountdown, distanceMeters, summarize, weekStart } f
 import { askPermission, notify, once } from "./notifications";
 import { downloadICS } from "./calendar";
 import { motivation } from "./motivation";
+import { unlockAudio } from "./sound";
 
 const DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const MIN = 60000;
@@ -217,9 +218,8 @@ const due = [
     const canExcuse = !r.checkIn && r.status !== "Excused" && t >= c.startAt.getTime() - OPEN_BEFORE;
     return (
       <div className="actions">
-        {canIn && <button className="primary" disabled={busy} onClick={() => checkIn(c)}>Check in</button>}
-        {canOut && <button className="primary" disabled={busy} onClick={() => checkOut(c)}>Check out</button>}
-        {canExcuse && <button disabled={busy} onClick={() => excuse(c)}>Excused</button>}
+ {canIn && <button className="primary" disabled={busy} onClick={() => checkIn(c)}>{busy ? "Verifying location…" : "Check in"}</button>}
+{canOut && <button className="primary" disabled={busy} onClick={() => checkOut(c)}>{busy ? "Verifying location…" : "Check out"}</button>}
       </div>
     );
   }
@@ -441,6 +441,9 @@ const due = [
         <div className="note">{located ? "School location is set." : "School location not set."}</div>
         <button disabled={busy} onClick={setSchool}>Set school location to where I am now</button>
         <button onClick={toggleNotify}>{settings.notify ? "Turn reminders off" : "Turn on reminders"}</button>
+        <button onClick={() => { unlockAudio(); notify("Test reminder", "Sound and vibration check", "test"); }}>
+  Test sound and vibration
+</button>
         <button onClick={() => downloadICS(classes, subjects)}>Add classes to phone calendar</button>
         <label>
           Allowed distance (m)

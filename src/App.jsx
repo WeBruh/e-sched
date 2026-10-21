@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { unlockAudio } from "./sound";
 import "./App.css";
 import Dashboard from "./Dashboard";
 import Subjects from "./Subjects";
@@ -10,6 +11,8 @@ import Backup from "./Backup";
 import Tasks from "./Tasks";
 import Reminders from "./Reminders";
 
+
+
 const TABS = ["Dashboard", "Subjects", "Schedule", "Tasks", "History"];
 
 export default function App() {
@@ -19,6 +22,15 @@ export default function App() {
   const [attendance, setAttendance] = useLocalStorage("attendance", {});
   const [settings, setSettings] = useLocalStorage("settings", { lat: null, lng: null, radius: 150, grace: 10 });
   const [tasks, setTasks] = useLocalStorage("tasks", []);
+  const [bannerOk, setBannerOk] = useState(false);
+
+useEffect(() => {
+  window.addEventListener("pointerdown", unlockAudio, { once: true });
+  window.__splashDone?.();
+  const t1 = setTimeout(() => document.getElementById("splash")?.classList.add("hide"), 1100);
+  const t2 = setTimeout(() => document.getElementById("splash")?.remove(), 1700);
+  return () => { clearTimeout(t1); clearTimeout(t2); };
+}, []);
 
   return (
     <div className="app">
@@ -27,12 +39,14 @@ export default function App() {
         <h1>E-Sched</h1>
       </header>
 
-      <main className="content">
+      <main className="content" key={tab}>
         <h2>{tab}</h2>
 
         {tab === "Dashboard" && (
   <>
-    <div className="banner" style={{ backgroundImage: `url(${banner})` }} />
+   <div className={`banner ${bannerOk ? "" : "shimmer"}`}
+  style={bannerOk ? { backgroundImage: `url(${banner})` } : undefined} />
+<img src={banner} alt="" hidden onLoad={() => setBannerOk(true)} />
     <Dashboard
      tasks={tasks} setTasks={setTasks}
       subjects={subjects}

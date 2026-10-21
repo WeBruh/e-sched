@@ -5,12 +5,50 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="manifest" href="/manifest.webmanifest" />
+    <style>
+  html, body { margin: 0; background: #0b0b12; }
+  #splash { position: fixed; inset: 0; z-index: 999; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 26px; background: #0b0b12; color: #f5f3f7; font-family: system-ui, sans-serif; font-weight: 300; transition: opacity .5s ease, transform .5s ease; }
+  #splash.hide { opacity: 0; transform: scale(1.06); pointer-events: none; }
+  #splash img { width: 96px; height: 96px; animation: sp-pop .8s cubic-bezier(.2,1.4,.4,1) both, sp-glitch 2.4s .8s infinite; }
+  .sp-card { width: 150px; padding: 16px 12px; border-radius: 18px; background: #1e1e2c; border: 1px solid #2a2a3a; text-align: center; font-size: 13px; animation: sp-rise .6s .2s ease both; }
+  .sp-ring { position: relative; width: 52px; height: 52px; margin: 0 auto 10px; }
+  .sp-ring svg { transform: rotate(-90deg); }
+  .sp-ring circle { fill: none; stroke-width: 3; }
+  #sp-bar { stroke: #e8202f; stroke-linecap: round; stroke-dasharray: 125.66; stroke-dashoffset: 125.66; transition: stroke-dashoffset .25s ease; }
+  #sp-pct { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; }
+  @keyframes sp-pop { from { opacity: 0; transform: scale(.6); } to { opacity: 1; transform: scale(1); } }
+  @keyframes sp-rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+  @keyframes sp-glitch { 0%, 92%, 100% { filter: none; } 94% { filter: drop-shadow(3px 0 #e8202f) drop-shadow(-3px 0 #19d3c5); } 96% { filter: drop-shadow(-3px 0 #e8202f) drop-shadow(3px 0 #19d3c5); } }
+</style>
 <meta name="theme-color" content="#0b0b12" />
 <link rel="apple-touch-icon" href="/icon-192.png" />
     <title>tracker</title>
   </head>
   <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
+    <body>
+  <div id="splash">
+    <img src="/favicon.svg" alt="" />
+    <div class="sp-card">
+      <div class="sp-ring">
+        <svg viewBox="0 0 44 44" width="52" height="52">
+          <circle cx="22" cy="22" r="20" stroke="rgba(255,255,255,.15)" />
+          <circle id="sp-bar" cx="22" cy="22" r="20" />
+        </svg>
+        <div id="sp-pct">0%</div>
+      </div>
+      <div>Loading your schedule…</div>
+    </div>
+  </div>
+  <div id="root"></div>
+  <script>
+    (function () {
+      var p = 0, bar = document.getElementById("sp-bar"), pct = document.getElementById("sp-pct"), C = 125.66;
+      function draw() { bar.style.strokeDashoffset = C * (1 - p / 100); pct.textContent = Math.round(p) + "%"; }
+      var id = setInterval(function () { p += (90 - p) * 0.07; draw(); }, 120);
+      window.__splashDone = function () { clearInterval(id); p = 100; draw(); };
+    })();
+  </script>
+  <script type="module" src="/src/main.jsx"></script>
+</body>
   </body>
 </html>
