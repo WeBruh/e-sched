@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 const empty = { name: "", instructor: "", room: "" };
+const timeNow = () => Date.now();
 
 export default function Subjects({ subjects, setSubjects }) {
   const [form, setForm] = useState(empty);
@@ -15,7 +16,7 @@ export default function Subjects({ subjects, setSubjects }) {
     if (editingId) {
       setSubjects(subjects.map((s) => (s.id === editingId ? { ...s, ...form } : s)));
     } else {
-      setSubjects([...subjects, { id: Date.now(), ...form }]);
+      setSubjects([...subjects, { id: timeNow(), ...form }]);
     }
     setForm(empty);
     setEditingId(null);

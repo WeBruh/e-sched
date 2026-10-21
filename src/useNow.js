@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 
+const timeNow = () => Date.now();
+
 export default function useNow() {
-  const [now, setNow] = useState(new Date());
+  const [now, setNow] = useState(timeNow);
   useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), 1000);
+    const id = setInterval(() => setNow(timeNow()), 1000);
     return () => clearInterval(id);
   }, []);
-  return now;
+  return new Date(now);
 }

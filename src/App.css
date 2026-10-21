@@ -244,3 +244,29 @@ body {
 .chip.on { background: var(--red); border-color: var(--red); color: #fff; }
 .chip.on small { color: #ffd6d9; }
 .gauges .g.focus { background: var(--card2); outline-color: var(--red); }
+
+.bottom-nav button { font-size: 0.72rem; padding: 12px 2px; }
+
+.card.boost { border-left-color: var(--teal); }
+.boost small { color: var(--teal); letter-spacing: 0.08em; text-transform: uppercase; font-size: 0.7rem; }
+.boost-title { font-size: 1.1rem; font-weight: 500; margin: 2px 0; }
+
+.card .task { display: flex; align-items: center; gap: 10px; margin-top: 10px; font-size: 1rem; }
+.card .task input { width: auto; margin: 0; accent-color: var(--red); }
+.card .task span { flex: 1; }
+.task small { color: var(--muted); }
+.task.done span { text-decoration: line-through; opacity: 0.5; }
+.card button.mini { margin: 0; padding: 4px 10px; font-size: 0.75rem; }
+.quick { display: flex; gap: 8px; margin: 10px 0 4px; }
+.quick button { margin: 0; }
+button.wide { width: 100%; padding: 12px; margin-bottom: 12px; border-radius: 999px; background: var(--card2); color: var(--ink); border: 1px solid #3a3a52; font-size: 0.9rem; }
+
+.cal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.cal-head button { margin: 0; width: 36px; padding: 6px 0; }
+.cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; }
+.cal .dow { font-size: 0.7rem; color: var(--muted); }
+.cal button { aspect-ratio: 1; margin: 0; padding: 0; border-radius: 12px; border: 1px solid transparent; background: transparent; color: var(--ink); position: relative; font-size: 0.9rem; }
+.cal button.today { border-color: var(--teal); }
+.cal button.sel { background: var(--red); color: #fff; }
+.cal button.has::after { content: ""; position: absolute; bottom: 4px; left: 50%; width: 5px; height: 5px; margin-left: -2.5px; border-radius: 50%; background: var(--teal); }
+.cal button.sel.has::after { background: #fff; }

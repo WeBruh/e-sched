@@ -29,3 +29,28 @@ export function downloadICS(classes, subjects) {
   a.click();
   URL.revokeObjectURL(url);
 }
+
+export function downloadTasksICS(tasks) {
+  const esc = (s) => s.replace(/([,;\\])/g, "\\$1").replace(/\n/g, " ");
+  const stamp = new Date().toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+  const lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//E-Sched//EN"];
+  tasks.filter((k) => !k.done).forEach((k) => {
+    const mins = Number(k.time.slice(0, 2)) * 60 + Number(k.time.slice(3, 5));
+    lines.push(
+      "BEGIN:VEVENT", `UID:task${k.id}@e-sched`, `DTSTAMP:${stamp}`,
+      `DTSTART:${k.date.replace(/-/g, "")}T${k.time.replace(":", "")}00`, "DURATION:PT30M",
+      `SUMMARY:${esc(k.title)}`,
+      "BEGIN:VALARM", "TRIGGER:PT0M", "ACTION:DISPLAY", `DESCRIPTION:${esc(k.title)}`, "END:VALARM"
+    );
+    if (k.evening)
+      lines.push("BEGIN:VALARM", `TRIGGER:-PT${240 + mins}M`, "ACTION:DISPLAY", `DESCRIPTION:Tomorrow: ${esc(k.title)}`, "END:VALARM");
+    lines.push("END:VEVENT");
+  });
+  lines.push("END:VCALENDAR");
+  const url = URL.createObjectURL(new Blob([lines.join("\r\n")], { type: "text/calendar" }));
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "e-sched-reminders.ics";
+  a.click();
+  URL.revokeObjectURL(url);
+}

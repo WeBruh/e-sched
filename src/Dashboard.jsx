@@ -4,6 +4,7 @@ import { Line, Donut, Bars, Gauge } from "./Charts";
 import { isoDate, toDate, fmtCountdown, distanceMeters, summarize, weekStart } from "./stats";
 import { askPermission, notify, once } from "./notifications";
 import { downloadICS } from "./calendar";
+import { motivation } from "./motivation";
 
 const DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const MIN = 60000;
@@ -23,12 +24,59 @@ function getPosition() {
 }
 
 const fmtTime = (iso) => new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+const dateFromMs = (ms) => new Date(ms);
+const isoFromMs = (ms) => dateFromMs(ms).toISOString();
+const addMs = (date, ms) => dateFromMs(date.getTime() + ms);
+const timeNow = () => Date.now();
 
-export default function Dashboard({ subjects, classes, attendance, setAttendance, settings, setSettings }) {
+function daysInMonth(year, monthIndex) {
+  const isLeap = (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
+  const lengths = [31, isLeap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+  return lengths[monthIndex];
+}
+
+function isoFromCalendar(date, offset = 0) {
+  let year = date.getFullYear();
+  let monthIndex = date.getMonth();
+  let day = date.getDate() + offset;
+
+  while (day > daysInMonth(year, monthIndex)) {
+    day -= daysInMonth(year, monthIndex);
+    monthIndex += 1;
+    if (monthIndex > 11) {
+      monthIndex = 0;
+      year += 1;
+    }
+  }
+
+  while (day <= 0) {
+    monthIndex -= 1;
+    if (monthIndex < 0) {
+      monthIndex = 11;
+      year -= 1;
+    }
+    day += daysInMonth(year, monthIndex);
+  }
+
+  const month = String(monthIndex + 1).padStart(2, "0");
+  const value = String(day).padStart(2, "0");
+  return `${year}-${month}-${value}`;
+}
+
+export default function Dashboard({ subjects, classes, attendance, setAttendance, settings, setSettings, tasks, setTasks }) {
   const now = useNow();
   const [msg, setMsg] = useState("");
   const [busy, setBusy] = useState(false);
   const [online, setOnline] = useState(navigator.onLine);
+
+  const todayStr = isoFromCalendar(now);
+  const tomorrowStr = isoFromCalendar(now, 1);
+  const open = tasks.filter((k) => !k.done);
+const due = [
+  ...open.filter((k) => k.date < todayStr).map((k) => ({ ...k, tag: "Overdue" })),
+  ...open.filter((k) => k.date === todayStr).map((k) => ({ ...k, tag: "Today" })),
+  ...open.filter((k) => k.date === tomorrowStr).map((k) => ({ ...k, tag: "Tomorrow" })),
+].slice(0, 5);
 
   useEffect(() => {
     const on = () => setOnline(true), off = () => setOnline(false);
@@ -109,11 +157,11 @@ export default function Dashboard({ subjects, classes, attendance, setAttendance
     setBusy(true); setMsg("");
     try {
       const distance = await verify();
-      const at = new Date().getTime();
+      const at = timeNow();
       if (at < c.startAt.getTime() - OPEN_BEFORE || at >= c.endAt.getTime())
         throw new Error("Check-in is closed for this class.");
       const status = at <= c.startAt.getTime() + grace ? "Present" : "Late";
-      save(c, { status, checkIn: new Date(at).toISOString(), verified: true, distance, auto: false });
+      save(c, { status, checkIn: isoFromMs(at), verified: true, distance, auto: false });
       navigator.vibrate?.(80);
       setMsg(`Checked in: ${status}`);
     } catch (e) { setMsg(e.message); }
@@ -124,9 +172,9 @@ export default function Dashboard({ subjects, classes, attendance, setAttendance
     setBusy(true); setMsg("");
     try {
       await verify();
-      const at = new Date().getTime();
+      const at = timeNow();
       const early = at < c.endAt.getTime() - 5 * MIN;
-      save(c, { checkOut: new Date(at).toISOString(), leftEarly: early });
+      save(c, { checkOut: isoFromMs(at), leftEarly: early });
       navigator.vibrate?.(80);
       setMsg(early ? "Checked out (left early)" : "Checked out");
     } catch (e) { setMsg(e.message); }
@@ -193,7 +241,7 @@ export default function Dashboard({ subjects, classes, attendance, setAttendance
   const focus = todays.find((c) => now < c.endAt);
   const next = todays.find((c) => c !== focus && c.startAt > now);
   const fr = focus ? recOf(focus) : {};
-  const lateAt = focus ? new Date(focus.startAt.getTime() + grace) : null;
+  const lateAt = focus ? addMs(focus.startAt, grace) : null;
   const pendingOut = todays.find(
     (c) => c !== focus && recOf(c).checkIn && !recOf(c).checkOut && now.getTime() < c.endAt.getTime() + OUT_AFTER
   );
@@ -242,8 +290,8 @@ export default function Dashboard({ subjects, classes, attendance, setAttendance
 
   const all = summarize(rows);
   const weeks = [5, 4, 3, 2, 1, 0].map((k) => {
-    const start = weekStart(new Date(now.getTime() - k * 7 * 86400000));
-    const end = new Date(start.getTime() + 7 * 86400000);
+    const start = weekStart(dateFromMs(now.getTime() - k * 7 * 86400000));
+    const end = dateFromMs(start.getTime() + 7 * 86400000);
     const inWeek = rows.filter((r) => { const d = toDate(r.date, "00:00"); return d >= start && d < end; });
     return { label: `${start.getMonth() + 1}/${start.getDate()}`, value: summarize(inWeek).percent };
   });
@@ -254,6 +302,7 @@ export default function Dashboard({ subjects, classes, attendance, setAttendance
     label: d.slice(0, 3), value: summarize(rows.filter((r) => r.cls.day === d)).percent,
   }));
   const lowest = perSubject.filter((p) => p.percent !== null).sort((a, b) => a.percent - b.percent)[0];
+  const boost = motivation({ all, rows, todayRecs: todays.map(recOf), now });
 
   return (
     <div>
@@ -296,7 +345,23 @@ export default function Dashboard({ subjects, classes, attendance, setAttendance
           {actions(pendingOut)}
         </div>
       )}
+  <div className="card boost">
+  <small>Daily boost</small>
+  <div className="boost-title">{boost.title}</div>
+  <div>{boost.text}</div>
+</div>
 
+{due.length > 0 && (
+  <div className="card">
+    <strong>Reminders</strong>
+    {due.map((k) => (
+      <label key={k.id} className="task">
+        <input type="checkbox" onChange={() => setTasks(tasks.map((x) => (x.id === k.id ? { ...x, done: true } : x)))} />
+        <span>{k.title} <small>{k.tag}{k.tag !== "Overdue" && ` • ${k.time}`}</small></span>
+      </label>
+    ))}
+  </div>
+  )}
       <div className="kpis">
         <div className="kp pct"><b>{all.percent === null ? "–" : `${all.percent}%`}</b><small>Attendance</small></div>
         <div className="kp abs"><b>{all.absent}</b><small>Absent</small></div>

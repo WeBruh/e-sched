@@ -7,8 +7,10 @@ import useLocalStorage from "./useLocalStorage";
 import banner from "./assets/miles-gwen.jpg";
 import History from "./History";
 import Backup from "./Backup";
+import Tasks from "./Tasks";
+import Reminders from "./Reminders";
 
-const TABS = ["Dashboard", "Subjects", "Schedule", "History"];
+const TABS = ["Dashboard", "Subjects", "Schedule", "Tasks", "History"];
 
 export default function App() {
   const [tab, setTab] = useState("Dashboard");
@@ -16,9 +18,11 @@ export default function App() {
   const [classes, setClasses] = useLocalStorage("classes", []);
   const [attendance, setAttendance] = useLocalStorage("attendance", {});
   const [settings, setSettings] = useLocalStorage("settings", { lat: null, lng: null, radius: 150, grace: 10 });
+  const [tasks, setTasks] = useLocalStorage("tasks", []);
 
   return (
     <div className="app">
+      <Reminders tasks={tasks} enabled={settings.notify} />
       <header className="header">
         <h1>E-Sched</h1>
       </header>
@@ -30,6 +34,7 @@ export default function App() {
   <>
     <div className="banner" style={{ backgroundImage: `url(${banner})` }} />
     <Dashboard
+     tasks={tasks} setTasks={setTasks}
       subjects={subjects}
       classes={classes}
       attendance={attendance}
@@ -39,6 +44,8 @@ export default function App() {
     />
   </>
 )}
+
+        {tab === "Tasks" && <Tasks tasks={tasks} setTasks={setTasks} />}
 
         {tab === "Subjects" && (
           <Subjects subjects={subjects} setSubjects={setSubjects} />
@@ -52,6 +59,7 @@ export default function App() {
   <>
     <History subjects={subjects} classes={classes} attendance={attendance} />
     <Backup
+      tasks={tasks} setTasks={setTasks}
       subjects={subjects} classes={classes} attendance={attendance}
       setSubjects={setSubjects} setClasses={setClasses} setAttendance={setAttendance}
     />

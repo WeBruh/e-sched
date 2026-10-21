@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+const timeNow = () => Date.now();
 
 export default function Schedule({ subjects, classes, setClasses }) {
   const [form, setForm] = useState({ subjectId: "", day: "Monday", start: "08:00", end: "09:00" });
@@ -11,7 +12,7 @@ export default function Schedule({ subjects, classes, setClasses }) {
 
   function handleAdd() {
     if (!form.subjectId) return;
-    setClasses([...classes, { id: Date.now(), ...form, subjectId: Number(form.subjectId) }]);
+    setClasses([...classes, { id: timeNow(), ...form, subjectId: Number(form.subjectId) }]);
   }
 
   function handleDelete(id) {
