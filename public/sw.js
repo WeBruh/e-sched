@@ -1,4 +1,4 @@
-const CACHE = "esched-v4";
+const CACHE = "esched-v5";
 
 async function precache() {
   const cache = await caches.open(CACHE);
@@ -31,6 +31,22 @@ self.addEventListener("activate", (e) => {
 self.addEventListener("fetch", (e) => {
   const req = e.request;
   if (req.method !== "GET" || !req.url.startsWith(self.location.origin)) return;
+
+  if (req.mode === "navigate" || new URL(req.url).pathname === "/index.html") {
+    e.respondWith(
+      fetch(req, { cache: "no-cache" })
+        .then((res) => {
+          if (res.ok) {
+            const copy = res.clone();
+            caches.open(CACHE).then((cache) => cache.put(req, copy));
+          }
+          return res;
+        })
+        .catch(() => caches.match(req, { ignoreSearch: true }).then((hit) => hit || caches.match("/index.html")))
+    );
+    return;
+  }
+
   e.respondWith(
     caches.match(req, { ignoreSearch: true }).then((hit) => {
       const net = fetch(req)
