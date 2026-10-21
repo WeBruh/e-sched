@@ -42,6 +42,13 @@ export default function History({ subjects, classes, attendance }) {
           <strong>{r.subject.name}</strong>
           <div>{r.date} • {r.cls.start} – {r.cls.end}</div>
           <span className={`pill ${r.status.toLowerCase()} tag`}>{r.status}</span>
+          {r.checkIn && (
+  <div className="note">
+    In {new Date(r.checkIn).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+    {r.checkOut && ` • Out ${new Date(r.checkOut).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`}
+    {r.verified && " • ✓ verified"}
+  </div>
+)}
           {r.note && <div className="note">Note: {r.note}</div>}
         </div>
       ))}

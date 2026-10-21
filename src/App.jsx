@@ -15,6 +15,7 @@ export default function App() {
   const [subjects, setSubjects] = useLocalStorage("subjects", []);
   const [classes, setClasses] = useLocalStorage("classes", []);
   const [attendance, setAttendance] = useLocalStorage("attendance", {});
+  const [settings, setSettings] = useLocalStorage("settings", { lat: null, lng: null, radius: 150, grace: 10 });
 
   return (
     <div className="app">
@@ -26,16 +27,18 @@ export default function App() {
         <h2>{tab}</h2>
 
         {tab === "Dashboard" && (
-          <>
-            <div className="banner" style={{ backgroundImage: `url(${banner})` }} />
-            <Dashboard
-              subjects={subjects}
-              classes={classes}
-              attendance={attendance}
-              setAttendance={setAttendance}
-            />
-          </>
-        )}
+  <>
+    <div className="banner" style={{ backgroundImage: `url(${banner})` }} />
+    <Dashboard
+      subjects={subjects}
+      classes={classes}
+      attendance={attendance}
+      setAttendance={setAttendance}
+      settings={settings}
+      setSettings={setSettings}
+    />
+  </>
+)}
 
         {tab === "Subjects" && (
           <Subjects subjects={subjects} setSubjects={setSubjects} />
