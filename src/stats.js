@@ -32,3 +32,17 @@ export function summarize(rows) {
   const counted = present + late + absent;
   return { present, late, absent, excused, percent: counted ? Math.round(((present + late) / counted) * 100) : null };
 }
+
+export function buildRows(attendance, classes, subjects) {
+  return Object.entries(attendance)
+    .map(([key, r]) => {
+      const cls = classes.find((c) => c.id === r.classId);
+      const subject = cls && subjects.find((s) => s.id === cls.subjectId);
+      return cls && subject ? { ...r, key, cls, subject } : null;
+    })
+    .filter((r) => r && r.status && r.status !== "Pending");
+}
+
+const mins = (t) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3, 5));
+export const minutesBetween = (a, b) => mins(b) - mins(a);
+export const fmtHM = (m) => `${Math.floor(m / 60)}h ${String(m % 60).padStart(2, "0")}m`;

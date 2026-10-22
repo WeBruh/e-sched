@@ -48,6 +48,14 @@
       window.__splashDone = function () { clearInterval(id); p = 100; draw(); };
     })();
   </script>
+  <script>
+  function spFail(msg) {
+    var el = document.querySelector("#splash .sp-card > div:last-child");
+    if (el) el.textContent = "Error: " + msg;
+  }
+  window.addEventListener("error", function (e) { spFail(e.message || "failed to load"); });
+  window.addEventListener("unhandledrejection", function (e) { spFail(String(e.reason)); });
+</script>
   <script type="module" src="/src/main.jsx"></script>
 </body>
   </body>

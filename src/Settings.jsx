@@ -2,7 +2,9 @@ import { useState } from "react";
 import { askPermission, notify } from "./notifications";
 import { unlockAudio } from "./sound";
 import { downloadICS } from "./calendar";
-import { distanceMeters } from "./stats";
+import Radio from "./Radio";
+import Modal from "./Modal";
+import DataCard from "./DataCard";
 
 function getPosition() {
   return new Promise((resolve, reject) => {
@@ -18,22 +20,18 @@ function getPosition() {
 export default function Settings({ settings, setSettings, classes, subjects, onBack }) {
   const [msg, setMsg] = useState("");
   const [busy, setBusy] = useState(false);
+  const [ask, setAsk] = useState(false);
+  const [perm, setPerm] = useState("Notification" in window ? Notification.permission : "unsupported");
   const set = (patch) => setSettings({ ...settings, ...patch });
+  const on = settings.reminders !== false;
   const mode = settings.alertMode || "manual";
   const minutes = settings.alertMinutes || 2;
   const located = settings.lat !== null;
+  const permText = { granted: "allowed", denied: "blocked in phone settings", unsupported: "not supported here", default: "not allowed yet" }[perm];
 
-  async function toggleNotify() {
-    if (settings.notify) return set({ notify: false });
-    unlockAudio();
-    const p = await askPermission();
-    if (p === "granted") set({ notify: true });
-    else setMsg(p === "unsupported" ? "This browser doesn't support notifications." : "Notifications are blocked. Allow them in your phone settings.");
-  }
-
-  async function setSchool() {
-    if (located && !confirm("Replace the saved school location?")) return;
-    setBusy(true); setMsg("");
+  async function allow() { unlockAudio(); setPerm(await askPermission()); }
+  async function locate() {
+    setAsk(false); setBusy(true); setMsg("");
     try {
       const { coords } = await getPosition();
       set({ lat: coords.latitude, lng: coords.longitude });
@@ -49,37 +47,33 @@ export default function Settings({ settings, setSettings, classes, subjects, onB
 
       <div className="card">
         <strong>Alerts</strong>
-        <button onClick={toggleNotify}>{settings.notify ? "Reminders: On (tap to turn off)" : "Turn on reminders"}</button>
-        <div className="note">When a reminder rings, stop…</div>
-        <div className="seg">
-          <button className={mode === "manual" ? "on" : ""} onClick={() => set({ alertMode: "manual" })}>Until I dismiss</button>
-          <button className={mode === "timed" ? "on" : ""} onClick={() => set({ alertMode: "timed" })}>After a set time</button>
+        <button onClick={() => set({ reminders: !on })}>{on ? "Alerts are on (tap to turn off)" : "Alerts are off (tap to turn on)"}</button>
+        <div className="note">Phone notifications: {permText}</div>
+        {perm === "default" && <button onClick={allow}>Allow phone notifications</button>}
+        <div className="note" style={{ marginTop: 12 }}>When an alert rings, stop…</div>
+        <div className="radios">
+          <Radio name="mode" checked={mode === "manual"} label="Until I dismiss it" onChange={() => set({ alertMode: "manual" })} />
+          <Radio name="mode" checked={mode === "timed"} label="After a set time" onChange={() => set({ alertMode: "timed" })} />
         </div>
         {mode === "timed" && (
-          <div className="seg">
+          <div className="radios sub">
             {[1, 2, 5, 10].map((n) => (
-              <button key={n} className={minutes === n ? "on" : ""} onClick={() => set({ alertMinutes: n })}>{n} min</button>
+              <Radio key={n} name="mins" checked={minutes === n} label={`${n} minute${n > 1 ? "s" : ""}`} onChange={() => set({ alertMinutes: n })} />
             ))}
           </div>
         )}
-        <button onClick={() => { unlockAudio(); notify("Math 101 starts in 10 min", "08:00 • Room 204. Check-in is open.", "test"); }}>
-          Test sound, vibration and pop-up
-        </button>
+        <button onClick={() => { unlockAudio(); notify("Test alert", "Sound and vibration are working.", "test"); }}>Test sound, vibration and pop-up</button>
       </div>
 
       <div className="card chart">
         <strong>Check-in</strong>
         <div className="note">{located ? "School location is set." : "School location not set."}</div>
-        <button disabled={busy} onClick={setSchool}>Set school location to where I am now</button>
-        <label>
-          Allowed distance (m)
-          <input type="number" min="50" value={settings.radius}
-            onChange={(e) => set({ radius: Number(e.target.value) || 0 })} />
+        <button disabled={busy} onClick={() => (located ? setAsk(true) : locate())}>Set school location to where I am now</button>
+        <label>Allowed distance (m)
+          <input type="number" min="50" value={settings.radius} onChange={(e) => set({ radius: Number(e.target.value) || 0 })} />
         </label>
-        <label>
-          Late after (minutes from start)
-          <input type="number" min="0" value={settings.grace}
-            onChange={(e) => set({ grace: Number(e.target.value) || 0 })} />
+        <label>Late after (minutes from start)
+          <input type="number" min="0" value={settings.grace} onChange={(e) => set({ grace: Number(e.target.value) || 0 })} />
         </label>
       </div>
 
@@ -87,6 +81,13 @@ export default function Settings({ settings, setSettings, classes, subjects, onB
         <strong>Calendar</strong>
         <button onClick={() => downloadICS(classes, subjects)}>Add classes to phone calendar</button>
       </div>
+
+      <DataCard />
+
+      {ask && (
+        <Modal tone="info" icon="info" title="Replace school location?" text="Check-in will use where you are right now."
+          confirmLabel="Replace" onConfirm={locate} onCancel={() => setAsk(false)} />
+      )}
     </div>
   );
 }

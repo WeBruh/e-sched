@@ -1,6 +1,7 @@
-export default function Backup({ subjects, classes, attendance, tasks, setSubjects, setClasses, setAttendance, setTasks }) {
+ export default function Backup({ subjects, classes, attendance, tasks, profile, setSubjects, setClasses, setAttendance, setTasks, setProfile }) {
   function handleExport() {
-    JSON.stringify({ subjects, classes, attendance, tasks }, null, 2)
+    
+    JSON.stringify({ subjects, classes, attendance, tasks, profile }, null, 2)
     const data = JSON.stringify({ subjects, classes, attendance }, null, 2);
     const url = URL.createObjectURL(new Blob([data], { type: "application/json" }));
     const a = document.createElement("a");
@@ -25,6 +26,7 @@ export default function Backup({ subjects, classes, attendance, tasks, setSubjec
         setClasses(data.classes);
         setAttendance(data.attendance);
         setTasks(Array.isArray(data.tasks) ? data.tasks : []);
+        if (data.profile) setProfile((p) => ({ ...p, ...data.profile }));
       } catch {
         alert("That file isn't a valid E-Sched backup.");
       }

@@ -1,7 +1,15 @@
 import { useEffect, useState } from "react";
 import { playChime } from "./sound";
+import Modal from "./Modal";
 
 const PATTERN = [300, 120, 300, 120, 600];
+const safeVibrate = (pattern) => {
+  if (typeof navigator === "undefined" || typeof navigator.vibrate !== "function") return;
+  try { navigator.vibrate(pattern); }
+  catch {
+    // Some browsers block vibration until the user interacts with the page.
+  }
+};
 
 export default function AlertPopup({ settings }) {
   const [queue, setQueue] = useState([]);
@@ -16,37 +24,33 @@ export default function AlertPopup({ settings }) {
   }, []);
 
   useEffect(() => {
-    if (!queue.length) { navigator.vibrate?.(0); return; }
+    if (!queue.length) { safeVibrate(0); return; }
     setStopped(false);
     const ring = () => {
       if (document.visibilityState !== "visible") return;
       playChime();
-      navigator.vibrate?.(PATTERN);
+      safeVibrate(PATTERN);
     };
     ring();
     const loop = setInterval(ring, 3500);
     const stop = mode === "timed"
-      ? setTimeout(() => { clearInterval(loop); navigator.vibrate?.(0); setStopped(true); }, minutes * 60000)
+      ? setTimeout(() => { clearInterval(loop); safeVibrate(0); setStopped(true); }, minutes * 60000)
       : null;
-    return () => { clearInterval(loop); clearTimeout(stop); navigator.vibrate?.(0); };
+    return () => { clearInterval(loop); clearTimeout(stop); safeVibrate(0); };
   }, [queue.length, mode, minutes]);
 
   if (!queue.length) return null;
   const a = queue[0];
+  const dismiss = () => setQueue((q) => q.slice(1));
 
   return (
-    <div className="alert-pop" role="alertdialog" aria-modal="true">
-      <div className="alert-box">
-        <div className={`pulse ${stopped ? "off" : ""}`} />
-        <small>{a.kind} • {a.at.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</small>
-        <h3>{a.title}</h3>
-        <p>{a.body}</p>
-        <small>{stopped ? "Alarm stopped" : mode === "manual" ? "Rings until you tap" : `Rings for ${minutes} min`}</small>
-        {queue.length > 1 && <p className="note">+{queue.length - 1} more</p>}
-        <div className="actions">
-          <button className="primary" onClick={() => setQueue((q) => q.slice(1))}>Got it</button>
-        </div>
+    <Modal top tone="alert" icon="bell" ringing={!stopped} title={a.title} text={a.body}
+      confirmLabel="Got it" cancelLabel={null} onConfirm={dismiss} onCancel={dismiss}>
+      <div className="modal-meta">
+        {a.kind} • {a.at.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} •{" "}
+        {stopped ? "Alarm stopped" : mode === "manual" ? "Rings until you tap" : `Rings for ${minutes} min`}
       </div>
-    </div>
+      {queue.length > 1 && <p className="note">+{queue.length - 1} more</p>}
+    </Modal>
   );
 }

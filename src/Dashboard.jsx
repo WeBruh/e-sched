@@ -1,12 +1,11 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import useNow from "./useNow";
-import { Line, Donut, Bars, Gauge } from "./Charts";
-import { isoDate, toDate, fmtCountdown, distanceMeters, summarize, weekStart } from "./stats";
-import { askPermission, notify, once } from "./notifications";
-import { downloadICS } from "./calendar";
+import CountUp from "./CountUp";
+import Empty from "./Empty";
+import ReasonModal, { reasonHandlers } from "./ReasonModal";
+import { isoDate, toDate, fmtCountdown, distanceMeters, summarize, buildRows } from "./stats";
+import { notify, once } from "./notifications";
 import { motivation } from "./motivation";
-import { unlockAudio } from "./sound";
-import RecordSheet from "./RecordSheet";
 
 const DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const MIN = 60000;
@@ -24,81 +23,26 @@ function getPosition() {
     );
   });
 }
-
 const fmtTime = (iso) => new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-const dateFromMs = (ms) => new Date(ms);
-const isoFromMs = (ms) => dateFromMs(ms).toISOString();
-const addMs = (date, ms) => dateFromMs(date.getTime() + ms);
-const timeNow = () => Date.now();
+const dayLabel = (iso) => toDate(iso, "00:00").toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" });
+const safeVibrate = (pattern) => {
+  if (typeof navigator === "undefined" || typeof navigator.vibrate !== "function") return;
+  try { navigator.vibrate(pattern); } catch { /* some browsers block vibration until the user taps */ }
+};
 
-function daysInMonth(year, monthIndex) {
-  const isLeap = (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
-  const lengths = [31, isLeap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-  return lengths[monthIndex];
-}
-
-function isoFromCalendar(date, offset = 0) {
-  let year = date.getFullYear();
-  let monthIndex = date.getMonth();
-  let day = date.getDate() + offset;
-
-  while (day > daysInMonth(year, monthIndex)) {
-    day -= daysInMonth(year, monthIndex);
-    monthIndex += 1;
-    if (monthIndex > 11) {
-      monthIndex = 0;
-      year += 1;
-    }
-  }
-
-  while (day <= 0) {
-    monthIndex -= 1;
-    if (monthIndex < 0) {
-      monthIndex = 11;
-      year -= 1;
-    }
-    day += daysInMonth(year, monthIndex);
-  }
-
-  const month = String(monthIndex + 1).padStart(2, "0");
-  const value = String(day).padStart(2, "0");
-  return `${year}-${month}-${value}`;
-}
-
-export default function Dashboard({ subjects, classes, attendance, setAttendance, settings, setSettings, tasks, setTasks }) {
-  const [sheet, setSheet] = useState(null);
-const swRef = useRef(null);
-
-useEffect(() => {
-  const root = swRef.current;
-  if (!root) return;
-  const cards = [...root.querySelectorAll(".chart")];
-  const io = new IntersectionObserver(
-    (entries) => entries.forEach((e) => e.target.classList.toggle("play", e.isIntersecting && document.visibilityState === "visible")),
-    { threshold: 0.4 }
-  );
-  cards.forEach((c) => io.observe(c));
-  const vis = () => cards.forEach((c) => {
-    const r = c.getBoundingClientRect();
-    c.classList.toggle("play", document.visibilityState === "visible" && r.right > 0 && r.left < innerWidth && r.bottom > 0 && r.top < innerHeight);
-  });
-  document.addEventListener("visibilitychange", vis);
-  return () => { io.disconnect(); document.removeEventListener("visibilitychange", vis); };
-}, []);
-
+export default function Dashboard({ subjects, classes, attendance, setAttendance, settings, tasks, setTasks, openRecords, go }) {
   const now = useNow();
   const [msg, setMsg] = useState("");
   const [busy, setBusy] = useState(false);
   const [online, setOnline] = useState(navigator.onLine);
-
-  const todayStr = isoFromCalendar(now);
-  const tomorrowStr = isoFromCalendar(now, 1);
-  const open = tasks.filter((k) => !k.done);
-const due = [
-  ...open.filter((k) => k.date < todayStr).map((k) => ({ ...k, tag: "Overdue" })),
-  ...open.filter((k) => k.date === todayStr).map((k) => ({ ...k, tag: "Today" })),
-  ...open.filter((k) => k.date === tomorrowStr).map((k) => ({ ...k, tag: "Tomorrow" })),
-].slice(0, 5);
+  const date = isoDate(now);
+  const dayName = DAY_NAMES[now.getDay()];
+  const grace = settings.grace * MIN;
+  const located = settings.lat !== null;
+  const alertsOn = settings.reminders !== false;
+  const keyOf = (c) => `${c.id}_${date}`;
+  const recOf = (c) => attendance[keyOf(c)] || {};
+  const h = reasonHandlers(setAttendance);
 
   useEffect(() => {
     const on = () => setOnline(true), off = () => setOnline(false);
@@ -107,21 +51,9 @@ const due = [
     return () => { window.removeEventListener("online", on); window.removeEventListener("offline", off); };
   }, []);
 
-  const date = isoDate(now);
-  const dayName = DAY_NAMES[now.getDay()];
-  const grace = settings.grace * MIN;
-  const located = settings.lat !== null;
-  const keyOf = (c) => `${c.id}_${date}`;
-  const recOf = (c) => attendance[keyOf(c)] || {};
-
   const todays = classes
     .filter((c) => c.day === dayName && subjects.some((s) => s.id === c.subjectId))
-    .map((c) => ({
-      ...c,
-      subject: subjects.find((s) => s.id === c.subjectId),
-      startAt: toDate(date, c.start),
-      endAt: toDate(date, c.end),
-    }))
+    .map((c) => ({ ...c, subject: subjects.find((s) => s.id === c.subjectId), startAt: toDate(date, c.start), endAt: toDate(date, c.end) }))
     .sort((a, b) => a.startAt - b.startAt);
 
   const isOpen = (r) => !r || !r.status || r.status === "Pending";
@@ -140,14 +72,12 @@ const due = [
   });
 
   useEffect(() => {
-    if (!settings.notify) return;
+    if (!alertsOn) return;
     const t = now.getTime();
     const within = (at) => t >= at && t < at + 2 * MIN;
     todays.forEach((c) => {
-      const r = recOf(c);
-      const s = c.startAt.getTime(), e = c.endAt.getTime();
+      const r = recOf(c), s = c.startAt.getTime(), e = c.endAt.getTime(), k = keyOf(c);
       const room = c.subject.room ? ` • Room ${c.subject.room}` : "";
-      const k = keyOf(c);
       if (!r.checkIn && r.status !== "Excused" && within(s - 10 * MIN) && once(`${k}_pre`))
         notify(`${c.subject.name} starts in 10 min`, `${c.start}${room}. Check-in is open.`, `${k}_pre`);
       if (!r.checkIn && r.status !== "Excused" && within(s + grace - 5 * MIN) && once(`${k}_late`))
@@ -165,13 +95,11 @@ const due = [
   }
 
   async function verify() {
-    if (!located) throw new Error("Set your school location first (bottom of this page).");
+    if (!located) throw new Error("Set your school location first (menu button → Settings).");
     const { coords } = await getPosition();
-    if (coords.accuracy > settings.radius)
-      throw new Error(`GPS too imprecise (±${Math.round(coords.accuracy)} m). Go near a window and retry.`);
+    if (coords.accuracy > settings.radius) throw new Error(`GPS too imprecise (±${Math.round(coords.accuracy)} m). Go near a window and retry.`);
     const dist = distanceMeters(coords.latitude, coords.longitude, settings.lat, settings.lng);
-    if (dist > settings.radius)
-      throw new Error(`Not at school: about ${Math.round(dist)} m away (limit ${settings.radius} m).`);
+    if (dist > settings.radius) throw new Error(`Not at school: about ${Math.round(dist)} m away (limit ${settings.radius} m).`);
     return Math.round(dist);
   }
 
@@ -179,12 +107,11 @@ const due = [
     setBusy(true); setMsg("");
     try {
       const distance = await verify();
-      const at = timeNow();
-      if (at < c.startAt.getTime() - OPEN_BEFORE || at >= c.endAt.getTime())
-        throw new Error("Check-in is closed for this class.");
+      const at = new Date().getTime();
+      if (at < c.startAt.getTime() - OPEN_BEFORE || at >= c.endAt.getTime()) throw new Error("Check-in is closed for this class.");
       const status = at <= c.startAt.getTime() + grace ? "Present" : "Late";
-      save(c, { status, checkIn: isoFromMs(at), verified: true, distance, auto: false });
-      navigator.vibrate?.(80);
+      save(c, { status, checkIn: new Date(at).toISOString(), verified: true, distance, auto: false });
+      safeVibrate(80);
       setMsg(`Checked in: ${status}`);
     } catch (e) { setMsg(e.message); }
     setBusy(false);
@@ -194,67 +121,27 @@ const due = [
     setBusy(true); setMsg("");
     try {
       await verify();
-      const at = timeNow();
+      const at = new Date().getTime();
       const early = at < c.endAt.getTime() - 5 * MIN;
-      save(c, { checkOut: isoFromMs(at), leftEarly: early });
-      navigator.vibrate?.(80);
+      save(c, { checkOut: new Date(at).toISOString(), leftEarly: early });
+      safeVibrate(80);
       setMsg(early ? "Checked out (left early)" : "Checked out");
     } catch (e) { setMsg(e.message); }
     setBusy(false);
   }
 
-  function excuse(c) {
-    const note = prompt("Reason for excused absence?");
-    if (note === null) return;
-    save(c, { status: "Excused", note, auto: false });
-  }
-
-  async function setSchool() {
-    if (located && !confirm("Replace the saved school location?")) return;
-    setBusy(true); setMsg("");
-    try {
-      const { coords } = await getPosition();
-      setSettings({ ...settings, lat: coords.latitude, lng: coords.longitude });
-      setMsg(`School location saved (±${Math.round(coords.accuracy)} m).`);
-    } catch (e) { setMsg(e.message); }
-    setBusy(false);
-  }
-
-  async function toggleNotify() {
-    if (settings.notify) return setSettings({ ...settings, notify: false });
-    const p = await askPermission();
-    if (p === "granted") {
-      setSettings({ ...settings, notify: true });
-      notify("Reminders are on", "You'll get alerts before class and before you're marked late.", "test");
-    } else {
-      setMsg(p === "unsupported" ? "This browser doesn't support notifications." : "Notifications are blocked. Allow them in your phone or browser settings.");
-    }
-  }
+  const excuse = (c) => save(c, { status: "Excused", auto: false, skipped: false });
 
   function actions(c) {
-    const r = recOf(c);
-    const t = now.getTime();
+    const r = recOf(c), t = now.getTime();
     const canIn = !r.checkIn && r.status !== "Excused" && t >= c.startAt.getTime() - OPEN_BEFORE && t < c.endAt.getTime();
     const canOut = r.checkIn && !r.checkOut && t < c.endAt.getTime() + OUT_AFTER;
     const canExcuse = !r.checkIn && r.status !== "Excused" && t >= c.startAt.getTime() - OPEN_BEFORE;
     return (
       <div className="actions">
- {canIn && <button className="primary" disabled={busy} onClick={() => checkIn(c)}>{busy ? "Verifying location…" : "Check in"}</button>}
-{canOut && <button className="primary" disabled={busy} onClick={() => checkOut(c)}>{busy ? "Verifying location…" : "Check out"}</button>}
-      </div>
-    );
-  }
-
-  function statusLine(c) {
-    const r = recOf(c);
-    return (
-      <div className="note">
-        {r.status || "Pending"}
-        {r.verified && " • ✓ verified"}
-        {r.checkIn && ` • In ${fmtTime(r.checkIn)}`}
-        {r.checkOut && ` • Out ${fmtTime(r.checkOut)}`}
-        {r.leftEarly && " • left early"}
-        {r.note && ` • ${r.note}`}
+        {canIn && <button className="primary" disabled={busy} onClick={() => checkIn(c)}>{busy ? "Verifying location…" : "Check in"}</button>}
+        {canOut && <button className="primary" disabled={busy} onClick={() => checkOut(c)}>{busy ? "Verifying location…" : "Check out"}</button>}
+        {canExcuse && <button disabled={busy} onClick={() => excuse(c)}>Excused</button>}
       </div>
     );
   }
@@ -262,200 +149,136 @@ const due = [
   const focus = todays.find((c) => now < c.endAt);
   const next = todays.find((c) => c !== focus && c.startAt > now);
   const fr = focus ? recOf(focus) : {};
-  const lateAt = focus ? addMs(focus.startAt, grace) : null;
-  const pendingOut = todays.find(
-    (c) => c !== focus && recOf(c).checkIn && !recOf(c).checkOut && now.getTime() < c.endAt.getTime() + OUT_AFTER
-  );
-  const upcoming = todays.filter((c) => c.startAt > now);
+  const lateAt = focus ? new Date(focus.startAt.getTime() + grace) : null;
+  const pendingOut = todays.find((c) => c !== focus && recOf(c).checkIn && !recOf(c).checkOut && now.getTime() < c.endAt.getTime() + OUT_AFTER);
 
   function alertBar() {
     if (!focus || fr.status === "Excused") return null;
     const t = now.getTime();
     const room = focus.subject.room ? `Room ${focus.subject.room}` : "";
-    if (fr.checkIn)
-      return (
-        <div className="alert ok">
-          <div><div>Checked in ✓ verified</div><div className="big">{fmtCountdown(focus.endAt - now)}</div></div>
-          <div className="side">until class ends</div>
-        </div>
-      );
-    if (t < focus.startAt.getTime() - OPEN_BEFORE)
-      return (
-        <div className="alert info">
-          <div><div>Check-in opens in</div><div className="big">{fmtCountdown(focus.startAt.getTime() - OPEN_BEFORE - t)}</div></div>
-          <div className="side">{focus.subject.name}<br />{room}</div>
-        </div>
-      );
-    if (t < lateAt.getTime())
-      return (
-        <div className="alert warn">
-          <div><div>Check in before you're marked late</div><div className="big">{fmtCountdown(lateAt - now)}</div></div>
-          <div className="side">{focus.subject.name}<br />{room}</div>
-        </div>
-      );
-    return (
-      <div className="alert late">
-        <div><div>You're late. Check in now</div><div className="big">{fmtCountdown(now - lateAt)}</div></div>
-        <div className="side">{focus.subject.name}<br />{room}</div>
-      </div>
-    );
+    if (fr.checkIn) return <div className="alert ok"><div><div>Checked in ✓ verified</div><div className="big">{fmtCountdown(focus.endAt - now)}</div></div><div className="side">until class ends</div></div>;
+    if (t < focus.startAt.getTime() - OPEN_BEFORE) return <div className="alert info"><div><div>Check-in opens in</div><div className="big">{fmtCountdown(focus.startAt.getTime() - OPEN_BEFORE - t)}</div></div><div className="side">{focus.subject.name}<br />{room}</div></div>;
+    if (t < lateAt.getTime()) return <div className="alert warn"><div><div>Check in before you're marked late</div><div className="big">{fmtCountdown(lateAt - now)}</div></div><div className="side">{focus.subject.name}<br />{room}</div></div>;
+    return <div className="alert late"><div><div>You're late. Check in now</div><div className="big">{fmtCountdown(now - lateAt)}</div></div><div className="side">{focus.subject.name}<br />{room}</div></div>;
   }
 
-  const rows = Object.values(attendance)
-    .map((r) => {
-      const cls = classes.find((c) => c.id === r.classId);
-      const subject = cls && subjects.find((s) => s.id === cls.subjectId);
-      return cls && subject ? { ...r, cls, subject } : null;
-    })
-    .filter((r) => r && r.status && r.status !== "Pending");
-
+  const rows = buildRows(attendance, classes, subjects);
   const all = summarize(rows);
-  const weeks = [7, 6, 5, 4, 3, 2, 1, 0].map((k) => {
-    const start = weekStart(dateFromMs(now.getTime() - k * 7 * 86400000));
-    const end = dateFromMs(start.getTime() + 7 * 86400000);
-    const inWeek = rows.filter((r) => { const d = toDate(r.date, "00:00"); return d >= start && d < end; });
-    return { label: `${start.getMonth() + 1}/${start.getDate()}`, value: summarize(inWeek).percent };
-  });
-  const perSubject = subjects.map((s) => ({
-    id: s.id, label: s.name, ...summarize(rows.filter((r) => r.subject.id === s.id)),
-  }));
-  const byDay = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].map((d) => ({
-    label: d.slice(0, 3), value: summarize(rows.filter((r) => r.cls.day === d)).percent,
-  }));
-  const lowest = perSubject.filter((p) => p.percent !== null).sort((a, b) => a.percent - b.percent)[0];
+  const per = subjects.map((s) => ({ label: s.name, ...summarize(rows.filter((r) => r.subject.id === s.id)) }));
+  const lowest = per.filter((p) => p.percent !== null).sort((a, b) => a.percent - b.percent)[0];
   const boost = motivation({ all, rows, todayRecs: todays.map(recOf), now });
+
+  const todayTasks = tasks.filter((k) => k.date === date);
+  const agenda = [
+    ...todays.map((c) => ({ id: `c${c.id}`, at: c.startAt.getTime(), c })),
+    ...todayTasks.map((k) => ({ id: `t${k.id}`, at: toDate(date, k.time).getTime(), k })),
+  ].sort((a, b) => a.at - b.at);
+  const flip = (k) => setTasks(tasks.map((x) => (x.id === k.id ? { ...x, done: !x.done } : x)));
+
+  const tomorrow = isoDate(new Date(now.getTime() + 86400000));
+  const horizon = isoDate(new Date(now.getTime() + 7 * 86400000));
+  const open = tasks.filter((k) => !k.done);
+  const reminders = [
+    ...open.filter((k) => k.date < date).map((k) => ({ ...k, tag: "Overdue", over: true })),
+    ...open.filter((k) => k.date > date && k.date <= horizon).sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time))
+      .map((k) => ({ ...k, tag: k.date === tomorrow ? "Tomorrow" : dayLabel(k.date) })),
+  ].slice(0, 6);
+
+  const needs = rows
+    .filter((r) => ["Late", "Absent", "Excused"].includes(r.status) && !r.note && !r.skipped && now - toDate(r.date, "00:00") < 14 * 86400000)
+    .sort((a, b) => (b.date + b.cls.start).localeCompare(a.date + a.cls.start))[0];
+
+  const num = (v) => (v === null ? "–" : <CountUp value={v} suffix="%" />);
 
   return (
     <div>
       {!online && <div className="offline">Offline • everything is saved on this phone</div>}
 
+      {subjects.length === 0 && (
+        <Empty art="list" title="No subjects yet" text="Add your first subject to see your day here."
+          actionLabel="Add a subject" onAction={() => go("Subjects")} />
+      )}
+
       {alertBar()}
       {msg && <div className="msg">{msg}</div>}
 
-      <div className="card focus-card">
-        {focus ? (
-          <>
-            <div className="row">
-              <div>
-                <small>{now >= focus.startAt ? "Current subject" : "Up next"}</small>
-                <div className="subj">{focus.subject.name}</div>
-                <small>{focus.start} – {focus.end}{focus.subject.room && ` • Room ${focus.subject.room}`}</small>
+      {subjects.length > 0 && (
+        <div className="card focus-card">
+          {focus ? (
+            <>
+              <div className="row">
+                <div>
+                  <small>{now >= focus.startAt ? "Current subject" : "Up next"}</small>
+                  <div className="subj">{focus.subject.name}</div>
+                  <small>{focus.start} – {focus.end}{focus.subject.room && ` • Room ${focus.subject.room}`}</small>
+                </div>
+                <div className="right"><small>Ends in</small><div className="num">{fmtCountdown(focus.endAt - now)}</div></div>
               </div>
-              <div className="right">
-                <small>Ends in</small>
-                <div className="num">{fmtCountdown(focus.endAt - now)}</div>
-              </div>
-            </div>
-            {fr.checkIn && statusLine(focus)}
-            {actions(focus)}
-            {next && (
-              <div className="nextrow">
-                <span>Next: {next.subject.name}, {next.start}</span>
-                <b>in {fmtCountdown(next.startAt - now)}</b>
-              </div>
-            )}
-          </>
-        ) : (
-          <p>No more classes today.</p>
-        )}
-      </div>
-
-      {pendingOut && (
-        <div className="card">
-          <strong>Check out of {pendingOut.subject.name}</strong>
-          {actions(pendingOut)}
+              {fr.checkIn && (
+                <div className="note">
+                  {fr.status}{fr.verified && " • ✓ verified"} • In {fmtTime(fr.checkIn)}{fr.checkOut && ` • Out ${fmtTime(fr.checkOut)}`}{fr.leftEarly && " • left early"}
+                </div>
+              )}
+              {actions(focus)}
+              {next && <div className="nextrow"><span>Next: {next.subject.name}, {next.start}</span><b>in {fmtCountdown(next.startAt - now)}</b></div>}
+            </>
+          ) : <p>No more classes today.</p>}
         </div>
       )}
-  <div className="card boost">
-  <small>Daily boost</small>
-  <div className="boost-title">{boost.title}</div>
-  <div>{boost.text}</div>
-</div>
 
-{due.length > 0 && (
-  <div className="card">
-    <strong>Reminders</strong>
-    {due.map((k) => (
-      <label key={k.id} className="task">
-        <input type="checkbox" onChange={() => setTasks(tasks.map((x) => (x.id === k.id ? { ...x, done: true } : x)))} />
-        <span>{k.title} <small>{k.tag}{k.tag !== "Overdue" && ` • ${k.time}`}</small></span>
-      </label>
-    ))}
-  </div>
-  )}
-      <div className="kpis">
-<button className="kp abs" onClick={() => setSheet("Absent")}><b>{all.absent}</b><small>Absent</small></button>
-<button className="kp lat" onClick={() => setSheet("Late")}><b>{all.late}</b><small>Late</small></button>
-<button className="kp exc" onClick={() => setSheet("Excused")}><b>{all.excused}</b><small>Excused</small></button>
+      {pendingOut && <div className="card"><strong>Check out of {pendingOut.subject.name}</strong>{actions(pendingOut)}</div>}
+
+      <div className="kpis big">
+        <div className="kp pct"><b>{num(all.percent)}</b><small>Attendance</small></div>
+        <button className="kp abs" onClick={() => openRecords("Absent")}><b><CountUp value={all.absent} /></b><small>Absent</small></button>
+        <button className="kp lat" onClick={() => openRecords("Late")}><b><CountUp value={all.late} /></b><small>Late</small></button>
+        <button className="kp exc" onClick={() => openRecords("Excused")}><b><CountUp value={all.excused} /></b><small>Excused</small></button>
+      </div>
+
+      <div className="card boost">
+        <small>Daily boost</small>
+        <div className="boost-title">{boost.title}</div>
+        <div>{boost.text}</div>
       </div>
 
       {lowest && lowest.percent < TARGET && (
-        <div className="warn-chip">
-          <b>{lowest.label} is at {lowest.percent}%</b>
-          <small>Below the {TARGET}% target. Another absence will hurt.</small>
-        </div>
+        <div className="warn-chip"><b>{lowest.label} is at {lowest.percent}%</b><small>Below the {TARGET}% target. Another absence will hurt.</small></div>
       )}
 
-      {todays.length > 0 && (
-        <div className="strip">
-          {todays.map((c) => {
-            const done = now >= c.endAt;
-            const live = now >= c.startAt && !done;
-            const label = done ? "Done" : live ? "Now" : c === upcoming[0] ? "Next" : "Later";
-            return (
-              <div key={c.id} className={`chip ${live ? "on" : ""}`}>
-                <small>{label}</small>
-                <b>{c.subject.name}</b>
-                <small>{c.start}{done && ` • ${recOf(c).status || "Pending"}`}</small>
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      <div className="section-head"><span>Insights</span><small>Swipe →</small></div>
-      <div className="sw" ref={swRef}>
-        <div className="card chart">
-          <div className="chart-title">Weekly attendance %</div>
-          <Line data={weeks} />
-          {sheet && <RecordSheet status={sheet} rows={rows} setAttendance={setAttendance} onClose={() => setSheet(null)} />}
-        </div>
-        <div className="card chart">
-          <div className="chart-title">Status breakdown</div>
-          <Donut
-            center={all.percent === null ? "–" : `${all.percent}%`}
-            slices={[
-{ label: "Present", value: all.present, color: "#19d3c5" },
-{ label: "Late", value: all.late, color: "#ffd23f" },
-{ label: "Absent", value: all.absent, color: "#e8202f" },
-{ label: "Excused", value: all.excused, color: "#ff2e93" },
-            ]}
-          />
-        </div>
-        <div className="card chart">
-          <div className="chart-title">Absences by subject</div>
-          <Bars data={perSubject.map((p) => ({ label: p.label, value: p.absent }))} />
-        </div>
-        <div className="card chart">
-          <div className="chart-title">Attendance per subject</div>
-          <div className="gauges">
-            {perSubject.map((p) => (
-              <div key={p.id} className={focus && focus.subject.id === p.id ? "g focus" : "g"}>
-                <Gauge value={p.percent} />
-                <div>{p.label}</div>
-              </div>
-            ))}
+      <div className="card">
+        <div className="card-h">Today's agenda</div>
+        {agenda.length === 0 && <div className="muted" style={{ padding: "10px 0" }}>Nothing planned today. Enjoy it.</div>}
+        {agenda.map((a) => a.c ? (
+          <div className="ag" key={a.id}>
+            <div className="ag-time">{a.c.start}</div>
+            <div className="ag-body"><b>{a.c.subject.name}</b><small>{a.c.subject.room ? `Room ${a.c.subject.room}` : "Class"}</small></div>
+            {(() => {
+              const tag = now >= a.c.endAt ? recOf(a.c).status || "Done" : now >= a.c.startAt ? "Now" : "Later";
+              return <span className={`ag-tag ${tag.toLowerCase()}`}>{tag}</span>;
+            })()}
           </div>
-        </div>
-        <div className="card chart">
-          <div className="chart-title">By weekday</div>
-          <div className="weekdays">
-            {byDay.map((d) => (
-              <div key={d.label}><small>{d.label}</small><b>{d.value === null ? "–" : `${d.value}%`}</b></div>
-            ))}
-          </div>
-        </div>
+        ) : (
+          <label className={`ag ${a.k.done ? "done" : ""}`} key={a.id}>
+            <div className="ag-time">{a.k.time}</div>
+            <div className="ag-body"><b>{a.k.title}</b><small>Reminder</small></div>
+            <input type="checkbox" checked={a.k.done} onChange={() => flip(a.k)} />
+          </label>
+        ))}
       </div>
+
+      <div className="card">
+        <div className="card-h">Reminders {reminders.length > 0 && <span className="count">{reminders.length}</span>}</div>
+        {reminders.length === 0 && <Empty compact art="check" title="No reminders" text="Add one in the Tasks tab."
+          actionLabel="Add a reminder" onAction={() => go("Tasks")} />}
+        {reminders.map((k) => (
+          <label className="rem" key={k.id}>
+            <input type="checkbox" checked={false} onChange={() => flip(k)} />
+            <span><b>{k.title}</b><small className={k.over ? "over" : ""}>{k.tag} • {k.time}</small></span>
+          </label>
+        ))}
+      </div>
+
+      {needs && <ReasonModal key={needs.key} rec={needs} onSave={(v) => h.save(needs, v)} onSkip={() => h.skip(needs)} />}
     </div>
   );
 }
