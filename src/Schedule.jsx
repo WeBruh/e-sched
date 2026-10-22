@@ -1,15 +1,18 @@
 import { useState } from "react";
 import Empty from "./Empty";
+import PickField from "./PickField";
+import TimeField, { Time12 } from "./TimeField";
 import { ConfirmDelete } from "./Modal";
 import { minutesBetween, fmtHM } from "./stats";
 
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+const DAY_OPTIONS = DAYS.map((d) => ({ value: d, label: d }));
 
 export default function Schedule({ subjects, classes, setClasses, go }) {
   const [form, setForm] = useState({ subjectId: "", day: "Monday", start: "08:00", end: "09:00" });
   const [err, setErr] = useState("");
   const [del, setDel] = useState(null);
-  const change = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+  const put = (patch) => setForm({ ...form, ...patch });
 
   function add() {
     if (!form.subjectId) return setErr("Choose a subject first.");
@@ -34,13 +37,13 @@ export default function Schedule({ subjects, classes, setClasses, go }) {
   return (
     <div>
       <div className="card">
-        <select name="subjectId" value={form.subjectId} onChange={change}>
-          <option value="">Choose subject</option>
-          {subjects.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-        </select>
-        <select name="day" value={form.day} onChange={change}>{DAYS.map((d) => <option key={d}>{d}</option>)}</select>
-        <input type="time" name="start" value={form.start} onChange={change} />
-        <input type="time" name="end" value={form.end} onChange={change} />
+        <PickField label="Subject" title="Choose subject" icon="info" placeholder="Choose subject" value={form.subjectId}
+          options={subjects.map((s) => ({ value: s.id, label: s.name }))} onChange={(v) => put({ subjectId: v })} />
+        <PickField label="Day" title="Choose a day" icon="calendar" value={form.day} options={DAY_OPTIONS} onChange={(v) => put({ day: v })} />
+        <div className="time-row">
+          <TimeField label="Starts" value={form.start} onChange={(v) => put({ start: v })} />
+          <TimeField label="Ends" value={form.end} onChange={(v) => put({ end: v })} />
+        </div>
         {err && <div className="note" style={{ color: "#ff6b76" }}>{err}</div>}
         <button className="primary" onClick={add}>Add class</button>
       </div>
@@ -50,7 +53,7 @@ export default function Schedule({ subjects, classes, setClasses, go }) {
           <strong>Time in school per day</strong>
           {summary.map((d) => (
             <div className="day-row" key={d.day}>
-              <div><b>{d.day}</b><small>{d.start} – {d.end}</small></div>
+              <div><b>{d.day}</b><small><Time12 t={d.start} /> – <Time12 t={d.end} /></small></div>
               <div style={{ textAlign: "right" }}><b>{fmtHM(d.atSchool)}</b><small>{fmtHM(d.inClass)} in class</small></div>
             </div>
           ))}
@@ -70,7 +73,7 @@ export default function Schedule({ subjects, classes, setClasses, go }) {
               return (
                 <div className="card" key={c.id}>
                   <strong>{s.name}</strong>
-                  <div>{c.start} – {c.end} {s.room && `• Room ${s.room}`}</div>
+                  <div><Time12 t={c.start} /> – <Time12 t={c.end} /> {s.room && `• Room ${s.room}`}</div>
                   <button onClick={() => setDel({ c, s })}>Delete</button>
                 </div>
               );
@@ -80,7 +83,7 @@ export default function Schedule({ subjects, classes, setClasses, go }) {
       })}
 
       {del && (
-        <ConfirmDelete title="Delete this class?" text={`${del.s.name}, ${del.c.day} ${del.c.start}–${del.c.end}`}
+        <ConfirmDelete title="Delete this class?" text={`${del.s.name}, ${del.c.day}`}
           onConfirm={() => { setClasses(classes.filter((x) => x.id !== del.c.id)); setDel(null); }} onCancel={() => setDel(null)} />
       )}
     </div>

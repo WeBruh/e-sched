@@ -4,6 +4,7 @@ import Dashboard from "./Dashboard";
 import Subjects from "./Subjects";
 import Schedule from "./Schedule";
 import Tasks from "./Tasks";
+import TaskList from "./TaskList";
 import History from "./History";
 import Backup from "./Backup";
 import Reminders from "./Reminders";
@@ -13,25 +14,24 @@ import Records from "./Records";
 import Profile, { Welcome } from "./Profile";
 import { emptyProfile } from "./profileData";
 import AlertPopup from "./AlertPopup";
-import Fab from "./Fab";
+import Sidebar from "./Sidebar";
+import TopBar from "./TopBar";
+import BottomNav from "./BottomNav";
 import Skeleton from "./Skeleton";
 import BackupNudge from "./BackupNudge";
-import { I } from "./Icons";
 import useLocalStorage from "./useLocalStorage";
 import { configureAlerts, askPermission } from "./notifications";
 import { requestPersistence } from "./persist";
 import { unlockAudio } from "./sound";
-import { buildRows } from "./stats";
-import banner from "./assets/miles-gwen.jpg";
+import { buildRows, isoDate } from "./stats";
 
-const TABS = ["Dashboard", "Subjects", "Schedule", "Tasks", "History"];
+const TITLES = { History: "Attendance", Insights: "Reports" };
 const SKELETON_MS = 1300; // how long the placeholder screen shows. Set to 0 to skip it.
 
 export default function App() {
   const [tab, setTab] = useState("Dashboard");
   const [recStatus, setRecStatus] = useState("Absent");
   const [ready, setReady] = useState(false);
-  const [bannerOk, setBannerOk] = useState(false);
   const [subjects, setSubjects] = useLocalStorage("subjects", []);
   const [classes, setClasses] = useLocalStorage("classes", []);
   const [attendance, setAttendance] = useLocalStorage("attendance", {});
@@ -79,66 +79,57 @@ export default function App() {
 
   const rows = buildRows(attendance, classes, subjects);
   const needsProfile = !(profile.name || "").trim() || !(profile.studentId || "").trim();
+  const todayStr = isoDate(new Date());
+  const bell = tasks.filter((k) => !k.done && k.date <= todayStr).length;
   const back = () => setTab("Dashboard");
   const openRecords = (s) => { setRecStatus(s); setTab("Records"); };
-  const first = (profile.name || "").trim().split(" ")[0];
 
   return (
-    <div className="app">
+    <div className="shell">
       <Reminders tasks={tasks} enabled={settings.reminders !== false} />
       <AlertPopup settings={settings} />
 
-      <header className="header"><h1>E-Sched</h1></header>
+      <Sidebar tab={tab} setTab={setTab} />
 
-      <main className="content" key={ready ? tab : "sk"}>
-        {!ready ? <Skeleton /> : (
-          <>
-            <h2>{tab === "Dashboard" ? `Hi, ${first || "there"}` : tab}</h2>
+      <div className="main-col">
+        <TopBar profile={profile} subjects={subjects} tasks={tasks} bell={bell} setTab={setTab} />
 
-            {tab === "Dashboard" && (
-              <>
-                <BackupNudge hasData={subjects.length > 0} />
-                <div className={`banner ${bannerOk ? "" : "shimmer"}`}
-                  style={bannerOk ? { backgroundImage: `url(${banner})` } : undefined} />
-                <img src={banner} alt="" hidden onLoad={() => setBannerOk(true)} />
-                <Dashboard subjects={subjects} classes={classes} attendance={attendance} setAttendance={setAttendance}
-                  settings={settings} tasks={tasks} setTasks={setTasks} openRecords={openRecords} go={setTab} />
-              </>
-            )}
-            {tab === "Subjects" && <Subjects subjects={subjects} setSubjects={setSubjects} classes={classes} />}
-            {tab === "Schedule" && <Schedule subjects={subjects} classes={classes} setClasses={setClasses} go={setTab} />}
-            {tab === "Tasks" && <Tasks tasks={tasks} setTasks={setTasks} />}
-            {tab === "History" && (
-              <>
-                <History subjects={subjects} classes={classes} attendance={attendance} />
-                <Backup subjects={subjects} classes={classes} attendance={attendance} tasks={tasks} profile={profile}
-                  setSubjects={setSubjects} setClasses={setClasses} setAttendance={setAttendance} setTasks={setTasks} setProfile={setProfile} />
-              </>
-            )}
-            {tab === "Insights" && <Insights rows={rows} subjects={subjects} onBack={back} />}
-            {tab === "Records" && <Records rows={rows} setAttendance={setAttendance} initial={recStatus} onBack={back} />}
-            {tab === "Profile" && <Profile profile={profile} setProfile={setProfile} onBack={back} />}
-            {tab === "Settings" && <Settings settings={settings} setSettings={setSettings} classes={classes} subjects={subjects} onBack={back} />}
-          </>
-        )}
-      </main>
+        <main className="content" key={ready ? tab : "sk"}>
+          {!ready ? <Skeleton /> : (
+            <>
+              {tab !== "Dashboard" && <h2>{TITLES[tab] || tab}</h2>}
 
-      <nav className="bottom-nav">
-        {TABS.map((name) => {
-          const Icon = I[name];
-          return (
-            <button key={name} className={tab === name ? "active" : ""} onClick={() => setTab(name)} aria-label={name}>
-              <Icon width="22" height="22" />
-              <span>{name}</span>
-            </button>
-          );
-        })}
-      </nav>
+              {tab === "Dashboard" && (
+                <>
+                  <BackupNudge hasData={subjects.length > 0} />
+                  <Dashboard subjects={subjects} classes={classes} attendance={attendance} setAttendance={setAttendance}
+                    settings={settings} tasks={tasks} setTasks={setTasks} openRecords={openRecords} go={setTab} profile={profile} />
+                </>
+              )}
+              {tab === "Subjects" && <Subjects subjects={subjects} setSubjects={setSubjects} classes={classes} />}
+              {tab === "Schedule" && <Schedule subjects={subjects} classes={classes} setClasses={setClasses} go={setTab} />}
+              {tab === "Calendar" && <Tasks tasks={tasks} setTasks={setTasks} />}
+              {tab === "Tasks" && <TaskList tasks={tasks} setTasks={setTasks} go={setTab} />}
+              {tab === "History" && (
+                <>
+                  <History subjects={subjects} classes={classes} attendance={attendance} />
+                  <Backup subjects={subjects} classes={classes} attendance={attendance} tasks={tasks} profile={profile}
+                    setSubjects={setSubjects} setClasses={setClasses} setAttendance={setAttendance} setTasks={setTasks} setProfile={setProfile} />
+                </>
+              )}
+              {tab === "Insights" && <Insights rows={rows} subjects={subjects} onBack={back} />}
+              {tab === "Records" && <Records rows={rows} setAttendance={setAttendance} initial={recStatus} onBack={back} />}
+              {tab === "Profile" && <Profile profile={profile} setProfile={setProfile} onBack={back} />}
+              {tab === "Settings" && <Settings settings={settings} setSettings={setSettings} classes={classes} subjects={subjects} onBack={back} />}
+            </>
+          )}
+        </main>
+      </div>
 
-      <Fab onOpen={setTab} />
+      <BottomNav tab={tab} setTab={setTab} />
 
       {ready && needsProfile && (
-        <Welcome onSave={(p) => { setProfile(p); unlockAudio(); askPermission(); }} />
+        <Welcome onSave={(p) => { setProfile(p); unlockAudio(); askPermission(); requestPersistence(); }} />
       )}
     </div>
   );

@@ -3,6 +3,7 @@ import { isoDate, toDate } from "./stats";
 import { downloadTasksICS } from "./calendar";
 import Modal, { ConfirmDelete } from "./Modal";
 import Empty from "./Empty";
+import TimeField from "./TimeField";
 
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 const label = (iso) => toDate(iso, "00:00").toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" });
@@ -57,7 +58,7 @@ export default function Tasks({ tasks, setTasks }) {
         </div>
         <div className="note">For: {label(selected)} (or tap a day below)</div>
         <input placeholder="What do you need to do?" value={title} onChange={(e) => setTitle(e.target.value)} />
-        <input type="time" value={time} onChange={(e) => setTime(e.target.value)} />
+        <TimeField label="Time" value={time} onChange={setTime} />
         <label className="task">
           <input type="checkbox" checked={evening} onChange={(e) => setEvening(e.target.checked)} />
           <span>Also remind me the evening before</span>

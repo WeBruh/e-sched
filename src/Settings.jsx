@@ -5,6 +5,7 @@ import { downloadICS } from "./calendar";
 import Radio from "./Radio";
 import Modal from "./Modal";
 import DataCard from "./DataCard";
+import NumberField from "./NumberField";
 
 function getPosition() {
   return new Promise((resolve, reject) => {
@@ -70,10 +71,10 @@ export default function Settings({ settings, setSettings, classes, subjects, onB
         <div className="note">{located ? "School location is set." : "School location not set."}</div>
         <button disabled={busy} onClick={() => (located ? setAsk(true) : locate())}>Set school location to where I am now</button>
         <label>Allowed distance (m)
-          <input type="number" min="50" value={settings.radius} onChange={(e) => set({ radius: Number(e.target.value) || 0 })} />
+          <NumberField value={settings.radius} min={50} onCommit={(n) => set({ radius: n })} />
         </label>
         <label>Late after (minutes from start)
-          <input type="number" min="0" value={settings.grace} onChange={(e) => set({ grace: Number(e.target.value) || 0 })} />
+          <NumberField value={settings.grace} min={0} onCommit={(n) => set({ grace: n })} />
         </label>
       </div>
 
