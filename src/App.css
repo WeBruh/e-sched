@@ -507,7 +507,18 @@ button:active:not(:disabled) { transform: scale(0.94); transition-duration: 0.08
 .field em { color: #ff6b76; font-style: normal; }
 .field i.ok { color: #3ddc84; font-style: normal; font-size: 0.75rem; margin-left: 6px; }
 .field input, .card .field input { display: block; width: 100%; box-sizing: border-box; margin: 0; padding: 11px; border-radius: 12px; border: 1px solid #3a3a52; background: var(--card2); color: var(--ink); font-size: 1rem; font-family: inherit; }
+.field textarea, .card .field textarea { display: block; width: 100%; box-sizing: border-box; margin: 0; padding: 11px; resize: vertical; border-radius: 12px; border: 1px solid #3a3a52; background: var(--card2); color: var(--ink); font-size: 1rem; font-family: inherit; }
 .field-h { margin-top: 14px; font-size: 0.8rem; color: var(--teal); letter-spacing: 0.06em; text-transform: uppercase; }
+.profile-photo { display: flex; align-items: center; gap: 16px; padding: 4px 0 14px; margin-bottom: 12px; border-bottom: 1px solid #2a2a3a; }
+.profile-photo-image, .profile-photo-placeholder { width: 84px; height: 84px; border-radius: 50%; flex: none; }
+.profile-photo-image { object-fit: cover; border: 2px solid #3a3a52; }
+.profile-photo-placeholder { font-size: 2rem; }
+.profile-photo-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.profile-photo-actions strong, .profile-photo-actions small { width: 100%; }
+.profile-photo-actions small { color: var(--muted); }
+.profile-photo-upload { display: inline-flex !important; align-items: center; min-height: 38px; padding: 7px 14px; border: 1px solid #3a3a52; border-radius: 999px; background: var(--card2); color: var(--ink); cursor: pointer; }
+.profile-photo-upload input { display: none !important; }
+.card .profile-photo-actions button { margin: 0; }
 
 /* ADD this to the very END of src/App.css (do not replace the file). */
 .nudge { border-left-color: var(--teal); }
@@ -689,4 +700,61 @@ button:active:not(:disabled) { transform: scale(0.94); transition-duration: 0.08
   .wk-grid { grid-template-columns: 1fr 1fr; }
   .ring { width: 150px; }
   .modal { max-width: 400px; }
+}
+
+/* ===== easier-to-read text (the app also lets people pick Normal / Large / Extra large) ===== */
+body { font-weight: 400; font-size: 1rem; line-height: 1.45; letter-spacing: 0; }
+b, strong { font-weight: 600; }
+small { font-size: 0.85em; }
+.note, .muted { font-size: 0.95rem; }
+button { min-height: 44px; }
+.mini, .card button.mini { min-height: 34px; }
+.modal-x { min-height: 32px; }
+.badge { font-size: 0.7rem; min-height: 0; }
+.hello { font-size: 1.15rem; }
+.hi { font-size: 2.4rem; font-weight: 600; }
+.hero .sub { font-size: 1.05rem; }
+.ring { width: 150px; }
+.ring-c b { font-size: 2.5rem; font-weight: 600; }
+.ring-c small { font-size: 0.75rem; }
+.lg { font-size: 1.05rem; }
+.lg b { font-size: 1.6rem; font-weight: 600; }
+.ch { font-size: 1.25rem; font-weight: 600; }
+.tl-title { font-size: 1.2rem; }
+.tl-time, .tl-sub { font-size: 0.95rem; }
+.qs b { font-size: 2.4rem; font-weight: 600; }
+.alert .big { font-size: 2.3rem; font-weight: 600; }
+.alert { font-size: 1rem; }
+.focus-card .subj { font-size: 1.5rem; font-weight: 600; }
+.focus-card .num { font-size: 1.5rem; font-weight: 600; }
+.tile b { font-size: 2.5rem; font-weight: 600; }
+.seg3 button b { font-size: 2.2rem; font-weight: 600; }
+.hist-sum { display: flex; align-items: baseline; gap: 10px; margin: 6px 0; }
+.hist-sum b { font-size: 2.2rem; font-weight: 600; }
+.ut, .rem { font-size: 1.1rem; }
+.cls b { font-size: 1.15rem; }
+.wk-tabs button b { font-size: 1rem; }
+.bnav button { font-size: 0.78rem; }
+.sb-item { font-size: 1.05rem; }
+.tb-val, .pb-val { font-size: 1.2rem; font-weight: 600; }
+.tp-list button { font-size: 1.25rem; }
+.ap { font-size: 0.7em; }
+
+/* ===== language picker, Google button, account, quote ===== */
+.google-btn, .card .google-btn { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; margin: 10px 0 0; padding: 13px; border-radius: 999px; background: #fff; color: #1f1f1f; border: none; font-size: 1rem; font-weight: 500; font-family: inherit; }
+.google-btn:disabled { opacity: 0.55; }
+.lang-pick { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 8px 0 12px; }
+.lang-pick button { padding: 14px 0; border-radius: 14px; background: var(--card2); border: 2px solid #3a3a52; color: var(--ink); font-size: 1.1rem; font-weight: 600; font-family: inherit; }
+.lang-pick button.on { border-color: var(--teal); background: rgba(25, 211, 197, 0.15); color: var(--teal); }
+.acct { display: flex; align-items: center; gap: 12px; margin: 10px 0; }
+.acct small { display: block; color: var(--muted); }
+img.avatar { object-fit: cover; }
+.quote { font-style: normal; }
+.quote span { display: block; }
+.q-title { display: block; font-size: 1.2rem; color: var(--ink); margin-bottom: 2px; }
+.shuffle { margin-top: 10px; padding: 8px 18px; min-height: 40px; border-radius: 999px; background: transparent; border: 1px solid #3a3a52; color: var(--ink); font-size: 0.9rem; font-family: inherit; }
+
+@media (min-width: 900px) {
+  .quote .shuffle { display: block; margin-left: auto; }
+  .quote .q-title { font-size: 1.35rem; }
 }

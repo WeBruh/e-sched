@@ -36,7 +36,7 @@
         </svg>
         <div id="sp-pct">0%</div>
       </div>
-      <div>Loading your schedule…</div>
+      <div id="sp-text">Loading your schedule…</div>
     </div>
   </div>
   <div id="root"></div>
@@ -56,6 +56,13 @@
   window.addEventListener("error", function (e) { spFail(e.message || "failed to load"); });
   window.addEventListener("unhandledrejection", function (e) { spFail(String(e.reason)); });
 </script>
+  <script>
+    try {
+      if (localStorage.getItem("esched_lang") === "tl") {
+        document.getElementById("sp-text").textContent = "Nilo-load ang iskedyul mo…";
+      }
+    } catch (e) {}
+  </script>
   <script type="module" src="/src/main.jsx"></script>
 </body>
   </body>

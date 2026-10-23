@@ -1,4 +1,5 @@
 import { createPortal } from "react-dom";
+import { useT } from "./i18n";
 
 const ICONS = {
   trash: <path d="M5 7h14M10 7V5h4v2M7 7l1 12h8l1-12M10 11v5M14 11v5" />,
@@ -10,11 +11,13 @@ const ICONS = {
   calendar: <><rect x="4" y="5" width="16" height="15" rx="3" /><path d="M4 10h16M9 3v4M15 3v4" /></>,
 };
 
-export default function Modal({ tone = "info", icon = "info", title, text, children, confirmLabel, cancelLabel = "Cancel", confirmDisabled, onConfirm, onCancel, locked, ringing, top }) {
+export default function Modal({ tone = "info", icon = "info", title, text, children, confirmLabel, cancelLabel, confirmDisabled, onConfirm, onCancel, locked, ringing, top }) {
+  const t = useT();
+  const cancel = cancelLabel === undefined ? t("Cancel") : cancelLabel; // null hides the button
   return createPortal(
     <div className={`modal-back ${top ? "top" : ""}`} onClick={locked ? undefined : onCancel}>
       <div className={`modal ${tone}`} role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
-        {!locked && onCancel && <button className="modal-x" aria-label="Close" onClick={onCancel}>×</button>}
+        {!locked && onCancel && <button className="modal-x" aria-label={t("Close")} onClick={onCancel}>×</button>}
         <div className={`modal-ic ${ringing ? "ringing" : ""}`}>
           <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{ICONS[icon]}</svg>
         </div>
@@ -22,7 +25,7 @@ export default function Modal({ tone = "info", icon = "info", title, text, child
         {text && <p className="modal-text">{text}</p>}
         {children}
         <div className="modal-actions">
-          {cancelLabel && onCancel && <button className="m-cancel" onClick={onCancel}>{cancelLabel}</button>}
+          {cancel && onCancel && <button className="m-cancel" onClick={onCancel}>{cancel}</button>}
           {confirmLabel && <button className="m-confirm" disabled={confirmDisabled} onClick={onConfirm}>{confirmLabel}</button>}
         </div>
       </div>
@@ -32,5 +35,6 @@ export default function Modal({ tone = "info", icon = "info", title, text, child
 }
 
 export function ConfirmDelete({ title, text, onConfirm, onCancel }) {
-  return <Modal tone="danger" icon="trash" title={title} text={text} confirmLabel="Delete" onConfirm={onConfirm} onCancel={onCancel} />;
+  const t = useT();
+  return <Modal tone="danger" icon="trash" title={title} text={text} confirmLabel={t("Delete")} onConfirm={onConfirm} onCancel={onCancel} />;
 }

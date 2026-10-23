@@ -1,8 +1,10 @@
 import CountUp from "./CountUp";
+import { useT } from "./i18n";
 
 const COLORS = ["#19d3c5", "#e8202f", "#ffd23f", "#4cc9f0"];
 
 export default function Ring({ present, absent, late, excused, percent }) {
+  const t = useT();
   const r = 40, c = 2 * Math.PI * r;
   const vals = [present, absent, late, excused];
   const total = vals.reduce((a, b) => a + b, 0);
@@ -25,7 +27,7 @@ export default function Ring({ present, absent, late, excused, percent }) {
       </svg>
       <div className="ring-c">
         <b>{percent === null ? "–" : <CountUp value={percent} suffix="%" />}</b>
-        <small>Attendance Rate</small>
+        <small>{t("Attendance Rate")}</small>
       </div>
     </div>
   );

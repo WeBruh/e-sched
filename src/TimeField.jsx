@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import Modal from "./Modal";
 import { to12, to24 } from "./time";
+import { useT } from "./i18n";
 
 const HOURS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 const MINUTES = Array.from({ length: 60 }, (_, i) => i);
@@ -36,6 +37,7 @@ function Col({ label, items, value, onPick, fmt }) {
 }
 
 export default function TimeField({ label, value, onChange }) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const [h, setH] = useState(8);
   const [m, setM] = useState(0);
@@ -54,12 +56,12 @@ export default function TimeField({ label, value, onChange }) {
         <span className="tb-val">{cur.hour}:{pad(cur.minute)}<ApBadge ap={cur.ap} /></span>
       </button>
       {open && (
-        <Modal tone="info" icon="clock" title="Set time" confirmLabel="Set" cancelLabel="Cancel"
+        <Modal tone="info" icon="clock" title={t("Set time")} confirmLabel={t("Set")}
           onConfirm={() => { onChange(to24(h, m, ap)); setOpen(false); }} onCancel={() => setOpen(false)}>
           <div className="tp-preview">{h}:{pad(m)}<ApBadge ap={ap} big /></div>
           <div className="tp-cols">
-            <Col label="Hour" items={HOURS} value={h} onPick={setH} fmt={String} />
-            <Col label="Minute" items={MINUTES} value={m} onPick={setM} fmt={pad} />
+            <Col label={t("Hour")} items={HOURS} value={h} onPick={setH} fmt={String} />
+            <Col label={t("Minute")} items={MINUTES} value={m} onPick={setM} fmt={pad} />
           </div>
           <div className="tp-ap">
             <button type="button" className={`am ${ap === "AM" ? "on" : ""}`} onClick={() => setAp("AM")}>AM</button>

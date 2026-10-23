@@ -1,4 +1,5 @@
 import { I } from "./Icons";
+import { useT } from "./i18n";
 
 const NAV = [
   { id: "Dashboard", label: "Dashboard", Icon: I.Dashboard },
@@ -11,28 +12,29 @@ const NAV = [
 ];
 
 export default function Sidebar({ tab, setTab }) {
+  const t = useT();
   return (
     <aside className="sidebar">
       <div className="sb-logo"><img src="/favicon.svg" alt="" /><span>E-SCHED</span></div>
       <nav>
         {NAV.map(({ id, label, Icon }) => (
           <button key={id} className={`sb-item ${tab === id ? "on" : ""}`} onClick={() => setTab(id)}>
-            <Icon width="20" height="20" />{label}
+            <Icon width="22" height="22" />{t(label)}
           </button>
         ))}
       </nav>
-      <div className="sb-h">Quick Actions</div>
-      <button className="qa" onClick={() => setTab("Calendar")}><I.Plus width="18" height="18" />Add Reminder</button>
-      <button className="qa" onClick={() => setTab("Schedule")}><I.Schedule width="18" height="18" />View Schedule</button>
-      <button className="qa" onClick={() => setTab("Dashboard")}><I.History width="18" height="18" />Mark Attendance</button>
+      <div className="sb-h">{t("Quick Actions")}</div>
+      <button className="qa" onClick={() => setTab("Calendar")}><I.Plus width="18" height="18" />{t("Add Reminder")}</button>
+      <button className="qa" onClick={() => setTab("Schedule")}><I.Schedule width="18" height="18" />{t("View Schedule")}</button>
+      <button className="qa" onClick={() => setTab("Dashboard")}><I.History width="18" height="18" />{t("Mark Attendance")}</button>
       <div className="sb-foot">
         <button className={`sb-item ${tab === "Settings" ? "on" : ""}`} onClick={() => setTab("Settings")}>
-          <I.Settings width="20" height="20" />Settings
+          <I.Settings width="22" height="22" />{t("Settings")}
         </button>
         <button className={`sb-item ${tab === "Profile" ? "on" : ""}`} onClick={() => setTab("Profile")}>
-          <I.Profile width="20" height="20" />Profile
+          <I.Profile width="22" height="22" />{t("Profile")}
         </button>
-        <small>v2.0.0</small>
+        <small>v3.0.0</small>
       </div>
     </aside>
   );

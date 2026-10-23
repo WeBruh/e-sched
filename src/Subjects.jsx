@@ -2,10 +2,12 @@ import { useState } from "react";
 import Empty from "./Empty";
 import { ConfirmDelete } from "./Modal";
 import { minutesBetween } from "./stats";
+import { useT } from "./i18n";
 
 const empty = { name: "", instructor: "", room: "", units: "" };
 
 export default function Subjects({ subjects, setSubjects, classes }) {
+  const t = useT();
   const [form, setForm] = useState(empty);
   const [editingId, setEditingId] = useState(null);
   const [del, setDel] = useState(null);
@@ -30,40 +32,41 @@ export default function Subjects({ subjects, setSubjects, classes }) {
   const hours = (weekMins / 60).toFixed(1).replace(".0", "");
   const teachers = {};
   subjects.forEach((s) => {
-    const t = (s.instructor || "").trim() || "No teacher set";
-    (teachers[t] = teachers[t] || []).push(s);
+    const k = (s.instructor || "").trim() || t("No teacher set");
+    (teachers[k] = teachers[k] || []).push(s);
   });
+  const room = (s) => (s.room ? ` • ${t("Room {room}", { room: s.room })}` : "");
 
   return (
     <div>
       <div className="tiles">
-        <div className="tile"><b>{subjects.length}</b><small>Subjects</small></div>
-        <div className="tile"><b>{totalUnits}</b><small>Units</small></div>
-        <div className="tile"><b>{hours}h</b><small>Class/week</small></div>
+        <div className="tile"><b>{subjects.length}</b><small>{t("Subjects")}</small></div>
+        <div className="tile"><b>{totalUnits}</b><small>{t("Units")}</small></div>
+        <div className="tile"><b>{hours}h</b><small>{t("Class/week")}</small></div>
       </div>
 
       <div className="card">
-        <input name="name" placeholder="Subject (e.g. Math 101)" value={form.name} onChange={change} />
-        <input name="instructor" placeholder="Teacher" value={form.instructor} onChange={change} />
-        <input name="room" placeholder="Room" value={form.room} onChange={change} />
-        <input name="units" type="number" min="0" step="0.5" inputMode="decimal" placeholder="Units" value={form.units} onChange={change} />
-        <button className="primary" onClick={save}>{editingId ? "Update subject" : "Add subject"}</button>
+        <input name="name" placeholder={t("Subject (e.g. Math 101)")} value={form.name} onChange={change} />
+        <input name="instructor" placeholder={t("Teacher")} value={form.instructor} onChange={change} />
+        <input name="room" placeholder={t("Room")} value={form.room} onChange={change} />
+        <input name="units" type="number" min="0" step="0.5" inputMode="decimal" placeholder={t("Units")} value={form.units} onChange={change} />
+        <button className="primary" onClick={save}>{editingId ? t("Update subject") : t("Add subject")}</button>
       </div>
 
       {subjects.length === 0 && (
-        <Empty art="list" title="No subjects yet" text="Add your first subject above to build your schedule." />
+        <Empty art="list" title={t("No subjects yet")} text={t("Add your first subject above to build your schedule.")} />
       )}
 
       {subjects.length > 0 && (
         <div className="card chart">
-          <strong>Teachers and subjects</strong>
-          {Object.entries(teachers).map(([t, list]) => (
-            <div className="teacher" key={t}>
-              <b>{t}</b>
+          <strong>{t("Teachers and subjects")}</strong>
+          {Object.entries(teachers).map(([name, list]) => (
+            <div className="teacher" key={name}>
+              <b>{name}</b>
               {list.map((s) => (
                 <div className="t-sub" key={s.id}>
-                  <span>{s.name}{s.room && ` • Room ${s.room}`}</span>
-                  <span>{s.units ? `${s.units} units` : "– units"}</span>
+                  <span>{s.name}{room(s)}</span>
+                  <span>{s.units ? t("{n} units", { n: s.units }) : t("– units")}</span>
                 </div>
               ))}
             </div>
@@ -74,14 +77,14 @@ export default function Subjects({ subjects, setSubjects, classes }) {
       {subjects.map((s) => (
         <div className="card" key={s.id}>
           <strong>{s.name}</strong>
-          <div className="note">{s.instructor} {s.room && `• Room ${s.room}`} {s.units && `• ${s.units} units`}</div>
-          <button onClick={() => edit(s)}>Edit</button>
-          <button onClick={() => setDel(s)}>Delete</button>
+          <div className="note">{s.instructor}{room(s)}{s.units && ` • ${t("{n} units", { n: s.units })}`}</div>
+          <button onClick={() => edit(s)}>{t("Edit")}</button>
+          <button onClick={() => setDel(s)}>{t("Delete")}</button>
         </div>
       ))}
 
       {del && (
-        <ConfirmDelete title={`Delete ${del.name}?`} text="This removes the subject. Its class times will no longer show."
+        <ConfirmDelete title={t("Delete {name}?", { name: del.name })} text={t("This removes the subject. Its class times will no longer show.")}
           onConfirm={() => { setSubjects(subjects.filter((x) => x.id !== del.id)); setDel(null); }} onCancel={() => setDel(null)} />
       )}
     </div>

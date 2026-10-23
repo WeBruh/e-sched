@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { I } from "./Icons";
+import { useT } from "./i18n";
 
 const MAIN = [
   { id: "Dashboard", Icon: I.Dashboard },
@@ -16,6 +17,7 @@ const MORE = [
 ];
 
 export default function BottomNav({ tab, setTab }) {
+  const t = useT();
   const [more, setMore] = useState(false);
   const inMore = MORE.some((m) => m.id === tab);
   return (
@@ -23,21 +25,21 @@ export default function BottomNav({ tab, setTab }) {
       <nav className="bnav">
         {MAIN.map(({ id, Icon }) => (
           <button key={id} className={tab === id ? "on" : ""} onClick={() => setTab(id)}>
-            <Icon width="24" height="24" /><span>{id}</span>
+            <Icon width="26" height="26" /><span>{t(id)}</span>
           </button>
         ))}
         <button className={inMore || more ? "on" : ""} onClick={() => setMore(true)}>
-          <I.More width="24" height="24" /><span>More</span>
+          <I.More width="26" height="26" /><span>{t("More")}</span>
         </button>
       </nav>
 
       {more && (
         <div className="sheet-back" onClick={() => setMore(false)}>
           <div className="sheet" onClick={(e) => e.stopPropagation()}>
-            <div className="sheet-head"><strong>More</strong><button onClick={() => setMore(false)}>Close</button></div>
+            <div className="sheet-head"><strong>{t("More")}</strong><button onClick={() => setMore(false)}>{t("Close")}</button></div>
             {MORE.map(({ id, label, Icon }) => (
               <button key={id} className={`more-item ${tab === id ? "on" : ""}`} onClick={() => { setMore(false); setTab(id); }}>
-                <Icon width="22" height="22" />{label}
+                <Icon width="24" height="24" />{t(label)}
               </button>
             ))}
           </div>

@@ -1,55 +1,43 @@
 import { useState } from "react";
+import { buildRows, summarize, toDate } from "./stats";
+import Empty from "./Empty";
+import PickField from "./PickField";
+import { Time12 } from "./TimeField";
+import { reasonText } from "./ReasonModal";
+import { useI18n } from "./i18n";
 
 export default function History({ subjects, classes, attendance }) {
+  const { t, locale } = useI18n();
   const [filter, setFilter] = useState("all");
-
-  const records = Object.values(attendance)
-    .map((r) => {
-      const cls = classes.find((c) => c.id === r.classId);
-      const subject = cls && subjects.find((s) => s.id === cls.subjectId);
-      return cls && subject ? { ...r, cls, subject } : null;
-    })
-    .filter(Boolean)
-    .filter((r) => r.status !== "Pending")
-    .filter((r) => filter === "all" || r.subject.id === Number(filter))
-    .sort((a, b) => b.date.localeCompare(a.date));
-
-  const count = (s) => records.filter((r) => r.status === s).length;
-  const present = count("Present");
-  const late = count("Late");
-  const absent = count("Absent");
-  const excused = count("Excused");
-  const counted = present + late + absent;
-  const percent = counted ? Math.round(((present + late) / counted) * 100) : 100;
+  const rows = buildRows(attendance, classes, subjects)
+    .filter((r) => filter === "all" || String(r.subject.id) === String(filter))
+    .sort((a, b) => (b.date + b.cls.start).localeCompare(a.date + a.cls.start));
+  const s = summarize(rows);
+  const options = [{ value: "all", label: t("All subjects") }, ...subjects.map((x) => ({ value: x.id, label: x.name }))];
+  const fmtTime = (iso) => new Date(iso).toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" });
+  const dateLabel = (iso) => toDate(iso, "00:00").toLocaleDateString(locale, { weekday: "short", month: "short", day: "numeric" });
 
   return (
     <div>
-      <div className="card">
-        <select value={filter} onChange={(e) => setFilter(e.target.value)}>
-          <option value="all">All subjects</option>
-          {subjects.map((s) => (
-            <option key={s.id} value={s.id}>{s.name}</option>
-          ))}
-        </select>
-        <strong>Attendance: {percent}%</strong>
-        <div>Present {present} • Late {late} • Absent {absent} • Excused {excused}</div>
+      <div className="card chart">
+        <PickField label={t("Subject")} title={t("Choose subject")} value={filter} options={options} onChange={setFilter} />
+        <div className="hist-sum"><b>{s.percent === null ? "–" : `${s.percent}%`}</b><small>{t("Attendance")}</small></div>
+        <div className="note">{t("Present")} {s.present} • {t("Late")} {s.late} • {t("Absent")} {s.absent} • {t("Excused")} {s.excused}</div>
       </div>
 
-      {records.length === 0 && <p>No records yet. Mark attendance on the Dashboard.</p>}
+      {rows.length === 0 && <Empty art="list" title={t("No records yet")} text={t("Check in to a class and it will show up here.")} />}
 
-      {records.map((r) => (
-        <div className="card" key={`${r.classId}_${r.date}`}>
-          <strong>{r.subject.name}</strong>
-          <div>{r.date} • {r.cls.start} – {r.cls.end}</div>
-          <span className={`pill ${r.status.toLowerCase()} tag`}>{r.status}</span>
+      {rows.map((r) => (
+        <div className={`card rec-card ${r.status.toLowerCase()}`} key={r.key}>
+          <div className="rc-top"><b>{r.subject.name}</b><small>{dateLabel(r.date)}</small></div>
+          <small className="muted"><Time12 t={r.cls.start} /> – <Time12 t={r.cls.end} /></small>
+          <div><span className={`ag-tag ${r.status.toLowerCase()}`}>{t(r.status)}</span></div>
           {r.checkIn && (
-  <div className="note">
-    In {new Date(r.checkIn).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-    {r.checkOut && ` • Out ${new Date(r.checkOut).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`}
-    {r.verified && " • ✓ verified"}
-  </div>
-)}
-          {r.note && <div className="note">Note: {r.note}</div>}
+            <div className="note">
+              {t("In {time}", { time: fmtTime(r.checkIn) })}{r.checkOut && ` • ${t("Out {time}", { time: fmtTime(r.checkOut) })}`}{r.verified && ` • ${t("verified")}`}{r.leftEarly && ` • ${t("left early")}`}
+            </div>
+          )}
+          {r.note && <div className="note">{t("Reason")}: {reasonText(r, t)}</div>}
         </div>
       ))}
     </div>
