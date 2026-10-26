@@ -24,11 +24,11 @@ export default function BottomNav({ tab, setTab }) {
     <>
       <nav className="bnav">
         {MAIN.map(({ id, Icon }) => (
-          <button key={id} className={tab === id ? "on" : ""} onClick={() => setTab(id)}>
+          <button key={id} className={tab === id ? "on" : ""} aria-label={t(id)} title={t(id)} onClick={() => setTab(id)}>
             <Icon width="26" height="26" /><span>{t(id)}</span>
           </button>
         ))}
-        <button className={inMore || more ? "on" : ""} onClick={() => setMore(true)}>
+        <button className={inMore || more ? "on" : ""} aria-label={t("More")} title={t("More")} onClick={() => setMore(true)}>
           <I.More width="26" height="26" /><span>{t("More")}</span>
         </button>
       </nav>

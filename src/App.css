@@ -758,3 +758,31 @@ img.avatar { object-fit: cover; }
   .quote .shuffle { display: block; margin-left: auto; }
   .quote .q-title { font-size: 1.35rem; }
 }
+
+/* ===== bottom navigation: dark floating bar, icons only, glowing red active icon ===== */
+.bnav { left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); height: 70px; padding: 0; gap: 0; border: none; border-radius: 22px; background: #1a1a1a; backdrop-filter: none; box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55); overflow: hidden; }
+.bnav button { position: relative; height: 100%; min-height: 0; padding: 0; gap: 0; border: none; border-radius: 0; background: none; justify-content: center; color: #8d8d8d; }
+.bnav button span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); }
+.bnav button svg { position: relative; z-index: 1; transition: transform 0.35s cubic-bezier(0.25, 1.6, 0.45, 1), color 0.3s, filter 0.3s; }
+.bnav button.on { color: #ff2b2b; }
+.bnav button.on svg { transform: scale(1.08); filter: drop-shadow(0 0 5px rgba(255, 43, 43, 0.95)) drop-shadow(0 0 14px rgba(255, 43, 43, 0.6)); }
+.bnav button.on::before { content: ""; position: absolute; top: 0; left: 20%; width: 60%; height: 5px; border-radius: 0 0 4px 4px; background: #ff1f1f; animation: navbar 0.35s ease both; }
+.bnav button.on::after { content: ""; position: absolute; top: 5px; left: 0; bottom: auto; width: 100%; height: calc(100% - 5px); margin: 0; border-radius: 0; background: linear-gradient(to bottom, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0) 92%); clip-path: polygon(20% 0, 80% 0, 100% 100%, 0 100%); animation: cone 0.45s ease both; }
+@keyframes navbar { from { transform: scaleX(0.2); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes cone { from { opacity: 0; } to { opacity: 1; } }
+
+/* ===== attendance ring card: fits on a phone, no pill buttons, no sideways overflow ===== */
+html, body { overflow-x: clip; }
+.ring-card { grid-template-columns: auto minmax(0, 1fr); gap: 14px; }
+.legend2 { min-width: 0; }
+.card button.lg, .lg { display: grid; grid-template-columns: 12px minmax(0, 1fr) auto; gap: 10px; align-items: center; width: 100%; min-height: 0; margin: 0; padding: 9px 0; border: none; border-bottom: 1px solid #1f1f2e; border-radius: 0; background: none; color: var(--ink); text-align: left; font-family: inherit; font-size: 1.05rem; }
+.lg span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.card button.view-all { min-height: 0; padding: 4px 0; border: none; border-radius: 0; background: none; color: var(--muted); }
+.ring-card .view-all { grid-column: 1 / -1; justify-self: end; margin: 0; }
+.ch .view-all { margin: 0 0 0 auto; }
+@media (max-width: 480px) {
+  .ring { width: 118px; }
+  .ring-c b { font-size: 1.9rem; }
+  .lg b { font-size: 1.35rem; }
+  .card button.lg, .lg { font-size: 0.95rem; }
+}
