@@ -4,10 +4,13 @@ import CountUp from "./CountUp";
 import Empty from "./Empty";
 import Ring from "./Ring";
 import { Time12 } from "./TimeField";
+import { fmt12 } from "./time";
 import { I } from "./Icons";
 import ReasonModal, { reasonHandlers } from "./ReasonModal";
 import { isoDate, toDate, fmtCountdown, distanceMeters, summarize, buildRows, weekStart } from "./stats";
 import { notify, once } from "./notifications";
+import { playCheck, playMiss } from "./sound";
+import { flash } from "./flash";
 import { motivation } from "./motivation";
 import { getPosition } from "./geo";
 import { useI18n } from "./i18n";
@@ -63,6 +66,11 @@ export default function Dashboard({ subjects, classes, attendance, setAttendance
   useEffect(() => {
     const missing = todays.filter((c) => now >= c.endAt && isOpen(attendance[keyOf(c)]));
     if (!missing.length) return;
+    const fresh = missing.filter((c) => once(`missed_${keyOf(c)}`));
+    if (fresh.length) {
+      playMiss();
+      flash("red", fresh.length === 1 ? t("Missed {name}", { name: fresh[0].subject.name }) : t("Missed {n} classes", { n: fresh.length }));
+    }
     setAttendance((prev) => {
       const next = { ...prev };
       missing.forEach((c) => {
@@ -73,20 +81,22 @@ export default function Dashboard({ subjects, classes, attendance, setAttendance
     });
   });
 
+  // one alert per class: it says when check-in is open and when you'll be marked late
   useEffect(() => {
     if (!alertsOn) return;
     const n = now.getTime();
-    const within = (at) => n >= at && n < at + 2 * MIN;
     todays.forEach((c) => {
-      const r = recOf(c), s = c.startAt.getTime(), e = c.endAt.getTime(), k = keyOf(c);
+      const r = recOf(c), s = c.startAt.getTime(), k = keyOf(c);
+      if (r.checkIn || r.status === "Excused" || n < s - 10 * MIN || n >= s + grace) return;
+      if (!once(`${k}_pre`)) return;
       const name = c.subject.name;
-      if (!r.checkIn && r.status !== "Excused" && within(s - 10 * MIN) && once(`${k}_pre`))
-        notify(t("{name} starts in 10 min", { name }),
-          c.subject.room ? t("{start} • Room {room}. Check-in is open.", { start: c.start, room: c.subject.room }) : t("{start}. Check-in is open.", { start: c.start }), `${k}_pre`);
-      if (!r.checkIn && r.status !== "Excused" && within(s + grace - 5 * MIN) && once(`${k}_late`))
-        notify(t("Check in now"), t("You'll be marked late for {name} in 5 minutes.", { name }), `${k}_late`);
-      if (r.checkIn && !r.checkOut && within(e - 5 * MIN) && once(`${k}_out`))
-        notify(t("Almost done"), t("Remember to check out of {name}.", { name }), `${k}_out`);
+      const late = new Date(s + grace).toLocaleTimeString(locale, { hour: "numeric", minute: "2-digit" });
+      const m = Math.max(1, Math.round((s - n) / MIN));
+      const title = s > n ? t("{name} starts in {m} min", { name, m }) : t("{name} has started", { name });
+      const body = c.subject.room
+        ? t("{start} • Room {room}. Check in before {late} or you'll be marked late.", { start: fmt12(c.start), room: c.subject.room, late })
+        : t("{start}. Check in before {late} or you'll be marked late.", { start: fmt12(c.start), late });
+      notify(title, body, `${k}_pre`);
     });
   });
 
@@ -98,7 +108,7 @@ export default function Dashboard({ subjects, classes, attendance, setAttendance
   }
 
   async function verify() {
-    if (!located) throw new Error(t("Set your school location first (More → Settings)."));
+    if (!located) throw new Error(t("Set your school location first (Profile → Check-in)."));
     const { coords } = await getPosition(t);
     if (coords.accuracy > settings.radius) throw new Error(t("GPS too imprecise (±{m} m). Go near a window and retry.", { m: Math.round(coords.accuracy) }));
     const dist = distanceMeters(coords.latitude, coords.longitude, settings.lat, settings.lng);
@@ -115,6 +125,8 @@ export default function Dashboard({ subjects, classes, attendance, setAttendance
       const status = at <= c.startAt.getTime() + grace ? "Present" : "Late";
       save(c, { status, checkIn: new Date(at).toISOString(), verified: true, distance, auto: false });
       safeVibrate(80);
+      playCheck();
+      flash("green", status === "Late" ? t("Checked in, late") : t("Checked in"));
       setMsg(t("Checked in: {status}", { status: t(status) }));
     } catch (e) { setMsg(e.message); }
     setBusy(false);
@@ -128,6 +140,8 @@ export default function Dashboard({ subjects, classes, attendance, setAttendance
       const early = at < c.endAt.getTime() - 5 * MIN;
       save(c, { checkOut: new Date(at).toISOString(), leftEarly: early });
       safeVibrate(80);
+      playCheck();
+      flash("green", t("Checked out"));
       setMsg(early ? t("Checked out (left early)") : t("Checked out"));
     } catch (e) { setMsg(e.message); }
     setBusy(false);
@@ -170,7 +184,7 @@ export default function Dashboard({ subjects, classes, attendance, setAttendance
   const all = summarize(rows);
   const per = subjects.map((s) => ({ label: s.name, ...summarize(rows.filter((r) => r.subject.id === s.id)) }));
   const lowest = per.filter((p) => p.percent !== null).sort((a, b) => a.percent - b.percent)[0];
-  const boost = motivation({ all, rows, todayRecs: todays.map(recOf), now, lang, bump });
+  const boost = motivation({ all, rows, todayRecs: todays.map(recOf), now, lang, bump, roast: settings.roast !== false });
 
   const hr = now.getHours();
   const hello = hr < 12 ? t("Good morning,") : hr < 18 ? t("Good afternoon,") : t("Good evening,");

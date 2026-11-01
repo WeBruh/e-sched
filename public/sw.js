@@ -7,7 +7,7 @@ async function precache() {
   await cache.put("/index.html", res.clone());
   await cache.put("/", res);
   const assets = [...html.matchAll(/(?:src|href)="(\/[^"]+)"/g)].map((m) => m[1]);
-  const files = [...assets, "/icon-192.png", "/icon-512.png", "/manifest.webmanifest"];
+  const files = [...assets, "/icon-192.png", "/icon-512.png", "/manifest.webmanifest", "/sounds/check.wav"];
   for (const u of assets.filter((a) => a.endsWith(".css"))) {
     try {
       const css = await (await fetch(u)).text();

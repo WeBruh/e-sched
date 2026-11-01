@@ -83,3 +83,22 @@ export function playSound(id) {
 }
 
 export const playChime = () => playSound(current);
+
+// The check-in / check-out click uses your own file: public/sounds/check.wav
+let checkAudio;
+export function playCheck() {
+  try {
+    checkAudio = checkAudio || new Audio("/sounds/check.wav");
+    checkAudio.currentTime = 0;
+    checkAudio.play().catch(() => {});
+  } catch { /* ignore */ }
+}
+
+// short falling tone for a missed class
+export function playMiss() {
+  if (!ctx || !master) return;
+  try {
+    tone({ f: 330, to: 196, d: 0.45, type: "triangle", g: 0.3 });
+    tone({ f: 247, to: 147, t: 0.18, d: 0.5, type: "triangle", g: 0.26 });
+  } catch { /* ignore */ }
+}

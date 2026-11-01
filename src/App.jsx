@@ -7,46 +7,51 @@ import Tasks from "./Tasks";
 import TaskList from "./TaskList";
 import History from "./History";
 import Reminders from "./Reminders";
-import Settings from "./Settings";
 import Insights from "./Insights";
 import Records from "./Records";
 import Profile, { Welcome, emptyProfile } from "./Profile";
 import AlertPopup from "./AlertPopup";
+import ScreenFlash from "./ScreenFlash";
+import PullRefresh from "./PullRefresh";
 import Sidebar from "./Sidebar";
 import TopBar from "./TopBar";
-import BottomNav from "./BottomNav";
-import Modal from "./Modal";
 import Skeleton from "./Skeleton";
 import BackupNudge from "./BackupNudge";
 import SyncDialog from "./SyncDialog";
 import useLocalStorage from "./useLocalStorage";
 import { I18nContext, makeI18n, detectLang } from "./i18n";
-import { configureAlerts, askPermission } from "./notifications";
+import { askPermission } from "./notifications";
 import { requestPersistence } from "./persist";
 import { initSync } from "./sync";
 import { unlockAudio, setSound } from "./sound";
 import { buildRows, isoDate } from "./stats";
 
 const TITLES = { History: "Attendance", Insights: "Reports" };
-const SIZES = { m: "16px", l: "18px", xl: "20px" };
+const SIZES = { m: "17px", l: "19px", xl: "21px" };
 const SKELETON_MS = 1300; // how long the placeholder screen shows. Set to 0 to skip it.
 
 export default function App() {
   const [tab, setTab] = useState("Dashboard");
   const [recStatus, setRecStatus] = useState("Absent");
   const [ready, setReady] = useState(false);
-  const [pendingSettingsNav, setPendingSettingsNav] = useState(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [collapsed, setCollapsedState] = useState(() => {
+    try { return localStorage.getItem("esched_nav_collapsed") === "1"; } catch { return false; }
+  });
   const [subjects, setSubjects] = useLocalStorage("subjects", []);
   const [classes, setClasses] = useLocalStorage("classes", []);
   const [attendance, setAttendance] = useLocalStorage("attendance", {});
   const [tasks, setTasks] = useLocalStorage("tasks", []);
   const [profile, setProfile] = useLocalStorage("profile", emptyProfile);
   const [settings, setSettings] = useLocalStorage("settings", {
-    lat: null, lng: null, radius: 150, grace: 10, reminders: true, alertMode: "manual", alertMinutes: 2,
-    sound: "glass", textSize: "l", lang: null,
+    lat: null, lng: null, radius: 150, grace: 10, reminders: true,
+    sound: "glass", textSize: "l", lang: null, roast: true, flash: true,
   });
-  const [settingsDraft, setSettingsDraft] = useState(settings);
-  const settingsDirty = JSON.stringify(settingsDraft) !== JSON.stringify(settings);
+
+  const setCollapsed = (v) => {
+    setCollapsedState(v);
+    try { localStorage.setItem("esched_nav_collapsed", v ? "1" : "0"); } catch { /* ignore */ }
+  };
 
   const lang = settings.lang || detectLang();
   const i18n = useMemo(() => makeI18n(lang), [lang]);
@@ -70,9 +75,6 @@ export default function App() {
 
   useEffect(() => { document.documentElement.style.fontSize = SIZES[settings.textSize] || SIZES.l; }, [settings.textSize]);
   useEffect(() => { setSound(settings.sound || "glass"); }, [settings.sound]);
-  useEffect(() => {
-    configureAlerts({ mode: settings.alertMode || "manual", minutes: settings.alertMinutes || 2 });
-  }, [settings.alertMode, settings.alertMinutes]);
 
   useEffect(() => {
     const block = (e) => { if (!/^(INPUT|TEXTAREA)$/.test(e.target.tagName)) e.preventDefault(); };
@@ -100,90 +102,54 @@ export default function App() {
   const needsProfile = !(profile.name || "").trim() || !(profile.studentId || "").trim();
   const todayStr = isoDate(new Date());
   const bell = tasks.filter((k) => !k.done && k.date <= todayStr).length;
-  const attemptSetTab = (next) => {
-    if (tab === "Settings" && settingsDirty && next !== "Settings") {
-      setPendingSettingsNav(next);
-      return;
-    }
-    if (next === "Settings" && tab !== "Settings") setSettingsDraft(settings);
-    setTab(next);
-  };
-  const confirmSettingsLeave = (action) => {
-    const target = pendingSettingsNav;
-    setPendingSettingsNav(null);
-    if (!target) return;
-    if (action === "save") {
-      setSettings(settingsDraft);
-      setTab(target);
-      return;
-    }
-    if (action === "discard") {
-      setSettingsDraft(settings);
-      setTab(target);
-    }
-  };
-  const saveSettings = () => setSettings(settingsDraft);
-  const back = () => attemptSetTab("Dashboard");
-  const openRecords = (s) => { setRecStatus(s); attemptSetTab("Records"); };
+  const back = () => setTab("Dashboard");
+  const openRecords = (s) => { setRecStatus(s); setTab("Records"); };
+  const page = tab === "Settings" ? "Profile" : tab; // Settings now lives inside Profile
 
   return (
     <I18nContext.Provider value={i18n}>
       <div className="shell">
-        <Reminders tasks={tasks} enabled={settings.reminders !== false} />
-        <AlertPopup settings={settings} />
+        <Reminders tasks={tasks} enabled={settings.reminders !== false} flashOn={settings.flash !== false} />
+        <AlertPopup />
+        <ScreenFlash enabled={settings.flash !== false} />
+        <PullRefresh />
         <SyncDialog />
 
-        <Sidebar tab={tab} setTab={attemptSetTab} />
+        <Sidebar tab={page} setTab={setTab} collapsed={collapsed} setCollapsed={setCollapsed} open={menuOpen} setOpen={setMenuOpen} />
 
         <div className="main-col">
-          <TopBar profile={profile} subjects={subjects} tasks={tasks} bell={bell} setTab={attemptSetTab} />
+          <TopBar profile={profile} subjects={subjects} tasks={tasks} bell={bell} setTab={setTab} onMenu={() => setMenuOpen(true)} />
 
-          <main className="content" key={ready ? tab : "sk"}>
+          <main className="content" key={ready ? page : "sk"}>
             {!ready ? <Skeleton /> : (
               <>
-                {tab !== "Dashboard" && <h2>{t(TITLES[tab] || tab)}</h2>}
+                {page !== "Dashboard" && <h2>{t(TITLES[page] || page)}</h2>}
 
-                {tab === "Dashboard" && (
+                {page === "Dashboard" && (
                   <>
                     <BackupNudge hasData={subjects.length > 0} />
                     <Dashboard subjects={subjects} classes={classes} attendance={attendance} setAttendance={setAttendance}
                       settings={settings} tasks={tasks} setTasks={setTasks} openRecords={openRecords} go={setTab} profile={profile} />
                   </>
                 )}
-                {tab === "Subjects" && <Subjects subjects={subjects} setSubjects={setSubjects} classes={classes} />}
-                {tab === "Schedule" && <Schedule subjects={subjects} classes={classes} setClasses={setClasses} go={setTab} />}
-                {tab === "Calendar" && <Tasks tasks={tasks} setTasks={setTasks} />}
-                {tab === "Tasks" && <TaskList tasks={tasks} setTasks={setTasks} go={setTab} />}
-                {tab === "History" && <History subjects={subjects} classes={classes} attendance={attendance} />}
-                {tab === "Insights" && <Insights rows={rows} subjects={subjects} onBack={back} />}
-                {tab === "Records" && <Records rows={rows} setAttendance={setAttendance} initial={recStatus} onBack={back} />}
-                {tab === "Profile" && <Profile profile={profile} setProfile={setProfile} onBack={back} />}
-                {tab === "Settings" && (
-                  <Settings
-                    settings={settingsDraft}
-                    setSettings={setSettingsDraft}
-                    isDirty={settingsDirty}
-                    onSave={saveSettings}
-                    classes={classes}
-                    subjects={subjects}
-                    onBack={back}
-                  />
+                {page === "Subjects" && <Subjects subjects={subjects} setSubjects={setSubjects} classes={classes} />}
+                {page === "Schedule" && <Schedule subjects={subjects} classes={classes} setClasses={setClasses} go={setTab} />}
+                {page === "Calendar" && <Tasks tasks={tasks} setTasks={setTasks} />}
+                {page === "Tasks" && <TaskList tasks={tasks} setTasks={setTasks} go={setTab} />}
+                {page === "History" && <History subjects={subjects} classes={classes} attendance={attendance} />}
+                {page === "Insights" && <Insights rows={rows} subjects={subjects} onBack={back} />}
+                {page === "Records" && <Records rows={rows} setAttendance={setAttendance} initial={recStatus} onBack={back} />}
+                {page === "Profile" && (
+                  <Profile profile={profile} setProfile={setProfile} settings={settings} setSettings={setSettings} classes={classes} subjects={subjects} />
                 )}
               </>
             )}
           </main>
         </div>
 
-        <BottomNav tab={tab} setTab={attemptSetTab} />
-
         {ready && needsProfile && (
           <Welcome lang={lang} onLang={(l) => setSettings({ ...settings, lang: l })}
             onSave={(p) => { setProfile(p); unlockAudio(); askPermission(); requestPersistence(); }} />
-        )}
-
-        {pendingSettingsNav && (
-          <Modal tone="info" icon="info" title={t("Unsaved changes")} text={t("Save your settings before leaving?")}
-            confirmLabel={t("Save changes")} cancelLabel={t("Discard")} onConfirm={() => confirmSettingsLeave("save")} onCancel={() => confirmSettingsLeave("discard")} />
         )}
       </div>
     </I18nContext.Provider>

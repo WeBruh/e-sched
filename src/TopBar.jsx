@@ -5,7 +5,7 @@ import { useT } from "./i18n";
 
 const initials = (n) => (n || "").trim().split(/\s+/).slice(0, 2).map((w) => (w[0] || "").toUpperCase()).join("") || "?";
 
-export default function TopBar({ profile, subjects, tasks, bell, setTab }) {
+export default function TopBar({ profile, subjects, tasks, bell, setTab, onMenu }) {
   const t = useT();
   const s = useSync();
   const [q, setQ] = useState("");
@@ -25,6 +25,7 @@ export default function TopBar({ profile, subjects, tasks, bell, setTab }) {
 
   return (
     <header className="topbar">
+      <button className="tb-menu" aria-label={t("Menu")} onClick={onMenu}><I.Menu width="24" height="24" /></button>
       <div className="tb-logo"><img src="/favicon.svg" alt="" /><span>E-SCHED</span></div>
 
       <div className="tb-search">
@@ -48,9 +49,7 @@ export default function TopBar({ profile, subjects, tasks, bell, setTab }) {
           {bell > 0 && <span className="badge">{bell}</span>}
         </button>
         <button className="me" aria-label={t("Profile")} onClick={() => setTab("Profile")}>
-          {profile.photo
-            ? <img className="avatar" src={profile.photo} alt="" />
-            : s.user && s.user.photo && photoOk
+          {s.user && s.user.photo && photoOk
             ? <img className="avatar" src={s.user.photo} alt="" referrerPolicy="no-referrer" onError={() => setPhotoOk(false)} />
             : <span className="avatar">{initials(profile.name)}</span>}
           <span className="me-t"><b>{profile.name || t("Student")}</b><small>{t("Student")}</small></span>

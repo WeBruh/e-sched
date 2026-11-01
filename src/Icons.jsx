@@ -19,5 +19,12 @@ export const I = {
   Search: make(<><circle cx="11" cy="11" r="6" /><path d="M20 20l-4.2-4.2" /></>),
   More: make(<><circle cx="12" cy="12" r="9" /><circle cx="8" cy="12" r="1" /><circle cx="12" cy="12" r="1" /><circle cx="16" cy="12" r="1" /></>),
   Chevron: make(<path d="M6 9l6 6 6-6" />),
+  Grid: make(<><rect x="4" y="4" width="6.5" height="6.5" rx="2" /><rect x="13.5" y="4" width="6.5" height="6.5" rx="2" /><rect x="4" y="13.5" width="6.5" height="6.5" rx="2" /><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="2" /></>),
+  Logout: make(<><path d="M10 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4" /><path d="M9 12h11M16 8l4 4-4 4" /></>),
+  ChevL: make(<path d="M15 6l-6 6 6 6" />),
+  ChevR: make(<path d="M9 6l6 6-6 6" />),
+  Menu: make(<path d="M4 7h16M4 12h16M4 17h16" />),
+  Refresh: make(<><path d="M20 12a8 8 0 1 1-2.6-5.9" /><path d="M20 4v5h-5" /></>),
+  Bolt: make(<path d="M13 3L5 13h6l-1 8 8-10h-6z" />),
   Arrow: make(<path d="M5 12h14M13 6l6 6-6 6" />),
 };

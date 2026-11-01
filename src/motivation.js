@@ -142,14 +142,152 @@ const MSG = {
   },
 };
 
+
+// Playful teasing (about habits only). Shown first when Roast mode is on.
+const ROAST = {
+  en: {
+    absent: [
+      ["Attendance: 0. Netflix: 1.", "You skipped class. The class didn't skip you. It's still there, judging your empty chair."],
+      ["Bold move.", "Your bed has a better attendance record than you today."],
+      ["Ghost mode: ON", "Your seat is so used to you being gone, it filed a missing-person report."],
+      ["Wow, a vanishing act.", "Houdini would be proud. Your teacher, not so much."],
+      ["Nap champion.", "You won the sleep. Now go win back the notes."],
+    ],
+    late: [
+      ["Oh, so now you show up?", "Your alarm clock has filed a formal complaint."],
+      ["Late again?", "The clock isn't broken. You're just running on island time."],
+      ["Speedrun failed.", "You were so close to being on time. 'Close' is the key word."],
+      ["Traffic or snooze?", "Be honest. The snooze button is not a personality trait."],
+      ["Grand entrance.", "Everyone looked up when you walked in. Not in a good way."],
+    ],
+    present: [
+      ["Who are you?", "On time? What did you do with the real you?"],
+      ["Look at you.", "Showing up on time like it's normal. Show-off."],
+      ["Plot twist.", "The snooze button just lost. Fatality."],
+      ["Suspiciously punctual.", "Your teacher is checking if you're feeling okay."],
+      ["Wow, you exist.", "Attendance awarded. Don't let it go to your head."],
+    ],
+    streak: [
+      ["{n} in a row", "Okay, who replaced you with a responsible person?"],
+      ["{n} straight", "Your streak lasts longer than your phone battery. Keep going."],
+      ["{n} classes", "Show-off. Leave some attendance for the rest of us."],
+      ["Unbelievable", "{n} in a row. Are you secretly a robot?"],
+      ["Teacher's pet alert", "{n} in a row. The group chat is going to hear about this."],
+    ],
+    high: [
+      ["{p}%?!", "Okay, nerd. Teach us your ways."],
+      ["{p}% attendance", "Your future boss already likes you, and you haven't even applied."],
+      ["Suspicious", "{p}%? Did you bribe the schedule?"],
+      ["{p}%, rude.", "Making the rest of us look bad. Keep it up."],
+      ["Overachiever.", "{p}% and you're still not done? Calm down."],
+    ],
+    low: [
+      ["{p}% attendance", "That's not a score, it's a weather forecast: cloudy with a chance of absences."],
+      ["{p}%...", "Your attendance and your phone battery both need charging."],
+      ["Hello? Anyone home?", "At {p}%, your seat is considering renting itself out."],
+      ["Math time", "{p}% means the class forgot your name. Introduce yourself tomorrow."],
+      ["Attendance diet", "{p}% is a crash diet. Time for a healthier habit."],
+    ],
+    monday: [
+      ["Monday again", "Your bed misses you. The class doesn't. Go anyway."],
+      ["Monday vibes", "Yes, you're tired. No, the class won't take a nap for you."],
+    ],
+    friday: [
+      ["It's Friday", "Your brain checked out at 7 AM. Drag the body to class anyway."],
+      ["Friday mode", "Mentally you're on the weekend. Physically you need a classroom chair."],
+    ],
+    morning: [
+      ["Good morning, sleepyhead", "The snooze button is not a career path. Up you get."],
+      ["Rise and grind", "Your bed is just a rectangle of lies. Get out of it."],
+      ["Wakey wakey", "Class is in session, and so is your destiny. Mostly class."],
+      ["Look alive", "Your future is calling. Don't let it go to voicemail."],
+      ["Morning, legend", "Yes, you can go back to sleep. No, you shouldn't."],
+    ],
+    later: [
+      ["Still alive?", "Congrats on surviving the day. Your couch is proud of you."],
+      ["Procrastination check", "That task won't do itself. Believe me, I asked."],
+      ["Halftime roast", "You've scrolled enough. Your phone will survive 10 minutes without you."],
+      ["Evening, genius", "Your homework won't do itself, but you could."],
+      ["Reminder", "Staring at the ceiling is not a study technique."],
+    ],
+  },
+  tl: {
+    absent: [
+      ["Attendance: 0. Netflix: 1.", "Lumiban ka sa klase. Hindi ka nilumiban ng klase. Nandoon pa rin, hinuhusgahan ang walang laman mong upuan."],
+      ["Matapang na galaw.", "Mas maganda pa ang attendance ng kama mo kaysa sa'yo ngayon."],
+      ["Ghost mode: ON", "Sanay na ang upuan mong wala ka, nag-file na ng missing person report."],
+      ["Wow, nawala ka.", "Proud sa'yo si Houdini. Ang teacher mo? Hindi masyado."],
+      ["Kampeon sa tulog.", "Nanalo ka sa tulog. Ngayon, habulin mo naman ang notes."],
+    ],
+    late: [
+      ["Ah, ngayon ka lang?", "Nag-file na ng reklamo ang alarm clock mo."],
+      ["Late na naman?", "Hindi sira ang orasan, Filipino time lang talaga ang takbo mo."],
+      ["Hindi umubra ang speedrun.", "Muntik ka nang on time. Ang susi ay ang salitang 'muntik'."],
+      ["Traffic o snooze?", "Magsabi ka ng totoo, hindi personality ang snooze button."],
+      ["Grand entrance.", "Lahat tumingin pagpasok mo. Hindi sa magandang paraan."],
+    ],
+    present: [
+      ["Sino ka?", "On time? Anong ginawa mo sa tunay na ikaw?"],
+      ["Ayan, oh.", "Dumating nang maaga na parang normal lang. Yabang."],
+      ["Plot twist.", "Natalo ang snooze button. Fatality."],
+      ["Kahina-hinalang maagap.", "Chine-check na ng teacher kung okay ka lang ba."],
+      ["Wow, nag-exist ka.", "Attendance, ibinigay. Huwag mong ipagyabang."],
+    ],
+    streak: [
+      ["{n} na sunod-sunod", "Okay, sino'ng pumalit sa'yo na responsableng tao?"],
+      ["{n} nang tuloy-tuloy", "Mas matagal pa ang streak mo kaysa sa battery ng phone mo."],
+      ["{n} klase", "Yabang. Mag-iwan ka naman ng attendance para sa amin."],
+      ["Hindi kapani-paniwala", "{n} sunod-sunod. Robot ka ba?"],
+      ["Alert: paborito ng teacher", "{n} sunod-sunod. Malalaman 'to ng group chat."],
+    ],
+    high: [
+      ["{p}%?!", "Okay, nerd. Turuan mo naman kami."],
+      ["{p}% na attendance", "Gusto ka na ng future boss mo kahit hindi ka pa nag-a-apply."],
+      ["Kahina-hinala", "{p}%? Sinuhulan mo ba ang schedule?"],
+      ["{p}%, bastos.", "Pinapahiya mo kaming lahat. Ituloy mo lang."],
+      ["Overachiever.", "{p}% at hindi ka pa tapos? Kalma lang."],
+    ],
+    low: [
+      ["{p}% na attendance", "Hindi 'yan score, weather forecast 'yan: maulap na may tsansa ng absent."],
+      ["{p}%...", "Parehong kailangang i-charge ang attendance at battery mo."],
+      ["Hello? May tao ba?", "Sa {p}%, iniisip na ng upuan mong magpa-rent."],
+      ["Oras ng math", "Ibig sabihin ng {p}%, nakalimutan na ng klase ang pangalan mo. Magpakilala ka ulit bukas."],
+      ["Attendance diet", "Crash diet ang {p}%. Panahon na para sa mas malusog na gawi."],
+    ],
+    monday: [
+      ["Lunes na naman", "Miss ka ng kama mo. Hindi ka miss ng klase. Pumasok ka pa rin."],
+      ["Lunes vibes", "Oo, pagod ka. Hindi, hindi matutulog ang klase para sa'yo."],
+    ],
+    friday: [
+      ["Biyernes na", "Nag-check out na ang utak mo nang 7 AM. Hilahin mo na lang ang katawan sa klase."],
+      ["Friday mode", "Sa isip, weekend ka na. Sa katawan, kailangan mo pang umupo sa classroom."],
+    ],
+    morning: [
+      ["Good morning, antukin", "Hindi career ang snooze button. Bangon na."],
+      ["Gising na, bida", "Ang kama mo ay parihabang puro kasinungalingan. Umalis ka na diyan."],
+      ["Wakey wakey", "Naka-session ang klase, at ang kapalaran mo. Mostly klase."],
+      ["Gising ka na", "Tumatawag ang future mo. Huwag mong ipa-voicemail."],
+      ["Umaga, alamat", "Oo, puwede kang bumalik sa tulog. Hindi, huwag."],
+    ],
+    later: [
+      ["Buhay ka pa?", "Congrats at nakaligtas ka sa maghapon. Proud sa'yo ang sofa mo."],
+      ["Procrastination check", "Hindi gagawin ng gawain ang sarili niya. Tinanong ko na."],
+      ["Halftime roast", "Sapat na ang scroll. Mabubuhay ang phone mo nang wala ka ng 10 minuto."],
+      ["Gabi na, genius", "Hindi gagawin ng assignment ang sarili niya, pero puwede kang gumawa."],
+      ["Paalala", "Hindi study technique ang pagtitig sa kisame."],
+    ],
+  },
+};
+
 const fill = (s, p) => s.replace(/\{(\w+)\}/g, (_, k) => (p[k] === undefined ? `{${k}}` : p[k]));
 
 // bump changes the line when the student taps "Another one"
-export function motivation({ all, rows, todayRecs, now, lang = "en", bump = 0 }) {
+export function motivation({ all, rows, todayRecs, now, lang = "en", bump = 0, roast = true }) {
   const M = MSG[lang] || MSG.en;
   const day = Math.floor(now.getTime() / 86400000);
   const pick = (cat, params = {}) => {
-    const list = M[cat];
+    const teasing = roast && ROAST[lang] && ROAST[lang][cat];
+    const list = teasing ? [...ROAST[lang][cat], ...M[cat]] : M[cat];
     const [title, text] = list[(day * 3 + bump + cat.length) % list.length];
     return { title: fill(title, params), text: fill(text, params) };
   };
