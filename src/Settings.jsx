@@ -62,6 +62,9 @@ export default function Settings({ settings, setSettings, classes, subjects }) {
             ["none", "No video"],
             ["ghost", "Ghost Rider Skull"],
             ["spring", "Spring Stroll"],
+            ["pastel", "Pastel Bloom"],
+            ["moon", "Full Moon"],
+            ["sunset", "Sunset Passenger"],
           ].map(([value, label]) => (
             <Radio key={value} name="wallpaper" checked={wallpaper === value} label={t(label)} onChange={() => set({ wallpaper: value })} />
           ))}

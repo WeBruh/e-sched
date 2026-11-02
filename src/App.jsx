@@ -144,6 +144,9 @@ export default function App() {
   const wallpaper = {
     ghost: "/wallpapers/ghost-rider-skull.mp4",
     spring: "/wallpapers/spring-stroll-with-her.mp4",
+    pastel: "/wallpapers/pastel-bloom-anime-girl.mp4",
+    moon: "/wallpapers/full-moon.mp4",
+    sunset: "/wallpapers/sunset-passenger.mp4",
   }[settings.wallpaper];
 
   return (
