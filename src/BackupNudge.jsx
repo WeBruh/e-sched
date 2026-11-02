@@ -1,19 +1,16 @@
 import { useState } from "react";
 import { downloadBackup, firstUse, lastBackup } from "./backupFile";
-import { useSync } from "./sync";
 import { useT } from "./i18n";
 
 const DAY = 86400000;
 
 export default function BackupNudge({ hasData }) {
   const t = useT();
-  const s = useSync();
   const [snooze, setSnooze] = useState(() => Number(localStorage.getItem("esched_nudge_snooze")) || 0);
   const [done, setDone] = useState(false);
   const last = lastBackup();
   const now = Date.now();
-  // signed-in users are already backed up in their account
-  const due = hasData && !s.user && !done && now > snooze && now - firstUse() > 2 * DAY && (!last || now - last > 7 * DAY);
+  const due = hasData && !done && now > snooze && now - firstUse() > 2 * DAY && (!last || now - last > 7 * DAY);
   if (!due) return null;
 
   return (

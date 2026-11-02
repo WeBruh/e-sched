@@ -17,12 +17,10 @@ import Sidebar from "./Sidebar";
 import TopBar from "./TopBar";
 import Skeleton from "./Skeleton";
 import BackupNudge from "./BackupNudge";
-import SyncDialog from "./SyncDialog";
 import useLocalStorage from "./useLocalStorage";
 import { I18nContext, makeI18n, detectLang } from "./i18n";
 import { askPermission } from "./notifications";
 import { requestPersistence } from "./persist";
-import { initSync } from "./sync";
 import { unlockAudio, setSound } from "./sound";
 import { buildRows, isoDate } from "./stats";
 
@@ -34,6 +32,7 @@ export default function App() {
   const [tab, setTab] = useState("Dashboard");
   const [recStatus, setRecStatus] = useState("Absent");
   const [ready, setReady] = useState(false);
+  const [idleHidden, setIdleHidden] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [collapsed, setCollapsedState] = useState(() => {
     try { return localStorage.getItem("esched_nav_collapsed") === "1"; } catch { return false; }
@@ -61,11 +60,48 @@ export default function App() {
     window.addEventListener("pointerdown", unlockAudio, { once: true });
     window.__splashDone?.();
     requestPersistence();
-    initSync();
     const t1 = setTimeout(() => document.getElementById("splash")?.classList.add("hide"), 800);
     const t2 = setTimeout(() => document.getElementById("splash")?.remove(), 1400);
     const t3 = setTimeout(() => setReady(true), SKELETON_MS);
     return () => [t1, t2, t3].forEach(clearTimeout);
+  }, []);
+
+  useEffect(() => {
+    const mobile = window.matchMedia("(max-width: 899px)");
+    let timer;
+    const scheduleHide = () => {
+      clearTimeout(timer);
+      if (!mobile.matches) {
+        setIdleHidden(false);
+        return;
+      }
+      timer = setTimeout(() => setIdleHidden(true), 5000);
+    };
+    const onActivity = () => {
+      setIdleHidden(false);
+      scheduleHide();
+    };
+    const onViewportChange = () => {
+      setIdleHidden(false);
+      scheduleHide();
+    };
+
+    scheduleHide();
+    window.addEventListener("pointerdown", onActivity, { passive: true });
+    window.addEventListener("pointermove", onActivity, { passive: true });
+    window.addEventListener("touchstart", onActivity, { passive: true });
+    window.addEventListener("touchmove", onActivity, { passive: true });
+    window.addEventListener("keydown", onActivity);
+    mobile.addEventListener("change", onViewportChange);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("pointerdown", onActivity);
+      window.removeEventListener("pointermove", onActivity);
+      window.removeEventListener("touchstart", onActivity);
+      window.removeEventListener("touchmove", onActivity);
+      window.removeEventListener("keydown", onActivity);
+      mobile.removeEventListener("change", onViewportChange);
+    };
   }, []);
 
   useEffect(() => {
@@ -105,15 +141,25 @@ export default function App() {
   const back = () => setTab("Dashboard");
   const openRecords = (s) => { setRecStatus(s); setTab("Records"); };
   const page = tab === "Settings" ? "Profile" : tab; // Settings now lives inside Profile
+  const wallpaper = {
+    ghost: "/wallpapers/ghost-rider-skull.mp4",
+    spring: "/wallpapers/spring-stroll-with-her.mp4",
+  }[settings.wallpaper];
 
   return (
     <I18nContext.Provider value={i18n}>
-      <div className="shell">
+      {wallpaper && (
+        <div className={`wallpaper-layer wallpaper-${settings.wallpaper}`} aria-hidden="true">
+          <video key={wallpaper} autoPlay muted loop playsInline preload="none">
+            <source src={wallpaper} type="video/mp4" />
+          </video>
+        </div>
+      )}
+      <div className={`shell ${wallpaper ? `wallpaper-on wallpaper-${settings.wallpaper}` : ""} ${idleHidden ? "idle-hidden" : ""}`}>
         <Reminders tasks={tasks} enabled={settings.reminders !== false} flashOn={settings.flash !== false} />
         <AlertPopup />
         <ScreenFlash enabled={settings.flash !== false} />
         <PullRefresh />
-        <SyncDialog />
 
         <Sidebar tab={page} setTab={setTab} collapsed={collapsed} setCollapsed={setCollapsed} open={menuOpen} setOpen={setMenuOpen} />
 

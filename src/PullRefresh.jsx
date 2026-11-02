@@ -1,11 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { I } from "./Icons";
-import { syncNow } from "./sync";
 
 const TRIGGER = 80;
 
 async function refresh() {
-  try { await syncNow(); } catch { /* not signed in */ }
   try {
     const reg = navigator.serviceWorker && (await navigator.serviceWorker.getRegistration());
     if (reg) await reg.update();
@@ -14,7 +12,7 @@ async function refresh() {
   window.location.reload();
 }
 
-// Pull down at the top of any screen to sync and reload
+// Pull down at the top of any screen to refresh the app
 export default function PullRefresh() {
   const [pull, setPull] = useState(0);
   const [busy, setBusy] = useState(false);

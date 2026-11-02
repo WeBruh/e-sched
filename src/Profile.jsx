@@ -1,14 +1,57 @@
 import { useState } from "react";
 import Modal from "./Modal";
-import { useSync, signInGoogle } from "./sync";
 import Settings from "./Settings";
 import { LANGS, useT } from "./i18n";
+import { I } from "./Icons";
 
-export const emptyProfile = { name: "", studentId: "", age: "", email: "", facebook: "", instagram: "", tiktok: "" };
+export const emptyProfile = { name: "", studentId: "", age: "", email: "", facebook: "", instagram: "", tiktok: "", photo: "" };
 const clean = (f) => ({ ...f, name: f.name.trim(), studentId: f.studentId.trim() });
+
+const MAX_PHOTO_BYTES = 10 * 1024 * 1024;
+const PHOTO_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif", "image/bmp"]);
+
+function resizePhoto(file) {
+  return new Promise((resolve, reject) => {
+    if (!PHOTO_TYPES.has(file.type)) {
+      reject(new Error("Choose a JPG, PNG, GIF, WebP, or BMP image."));
+      return;
+    }
+    if (file.size > MAX_PHOTO_BYTES) {
+      reject(new Error("Choose an image smaller than 10 MB."));
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error("Could not read that image. Try another file."));
+    reader.onload = () => {
+      const image = new Image();
+      image.onerror = () => reject(new Error("That image could not be opened."));
+      image.onload = () => {
+        const scale = Math.min(1, 512 / Math.max(image.naturalWidth, image.naturalHeight));
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+        canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+        const context = canvas.getContext("2d");
+        if (!context) {
+          reject(new Error("Your browser couldn't process the image."));
+          return;
+        }
+        try {
+          context.drawImage(image, 0, 0, canvas.width, canvas.height);
+          resolve(canvas.toDataURL("image/jpeg", 0.82));
+        } catch {
+          reject(new Error("Your browser couldn't process the image."));
+        }
+      };
+      image.src = String(reader.result);
+    };
+    reader.readAsDataURL(file);
+  });
+}
 
 function Fields({ f, setF }) {
   const t = useT();
+  const [photoError, setPhotoError] = useState("");
   const bind = (k) => ({ value: f[k] || "", onChange: (e) => setF({ ...f, [k]: e.target.value }) });
   const social = (k, label) => (
     <label className="field">
@@ -16,27 +59,55 @@ function Fields({ f, setF }) {
       <input placeholder={t("@username or link")} {...bind(k)} />
     </label>
   );
+  async function choosePhoto(e) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setPhotoError("");
+    try {
+      const photo = await resizePhoto(file);
+      setF((current) => ({ ...current, photo }));
+    } catch (error) {
+      setPhotoError(error instanceof Error ? error.message : "Your browser couldn't process the image.");
+    }
+  }
   return (
-    <div className="fields">
-      <label className="field"><span>{t("Full name")} <em>*</em></span><input placeholder={t("Your full name")} {...bind("name")} /></label>
-      <label className="field"><span>{t("Student ID")} <em>*</em></span><input placeholder={t("e.g. 2024-00123")} {...bind("studentId")} /></label>
-      <label className="field"><span>{t("Age")}</span><input type="number" min="1" max="99" inputMode="numeric" placeholder={t("Optional")} {...bind("age")} /></label>
-      <label className="field"><span>{t("Email")}</span><input type="email" placeholder={t("Optional")} {...bind("email")} /></label>
-      <div className="field-h">{t("Connect accounts (optional)")}</div>
-      {social("facebook", "Facebook")}
-      {social("instagram", "Instagram")}
-      {social("tiktok", "TikTok")}
-    </div>
+    <>
+      <div className="profile-photo">
+        {f.photo
+          ? <img className="profile-photo-image" src={f.photo} alt={t("Profile picture")} />
+          : <div className="profile-photo-placeholder"><I.Profile width="36" height="36" /></div>}
+        <div className="profile-photo-actions">
+          <strong>{t("Profile picture")}</strong>
+          <small>{t("Stored on this device. Images are resized to save space.")}</small>
+          <label className="profile-photo-upload">
+            {t(f.photo ? "Change photo" : "Upload photo")}
+            <input type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/bmp" onChange={choosePhoto} />
+          </label>
+          {f.photo && <button type="button" onClick={() => { setF({ ...f, photo: "" }); setPhotoError(""); }}>{t("Remove photo")}</button>}
+          {photoError && <small className="photo-error" role="alert">{t(photoError)}</small>}
+        </div>
+      </div>
+      <div className="fields">
+        <label className="field"><span>{t("Full name")} <em>*</em></span><input placeholder={t("Your full name")} {...bind("name")} /></label>
+        <label className="field"><span>{t("Student ID")} <em>*</em></span><input placeholder={t("e.g. 2024-00123")} {...bind("studentId")} /></label>
+        <label className="field"><span>{t("Age")}</span><input type="number" min="1" max="99" inputMode="numeric" placeholder={t("Optional")} {...bind("age")} /></label>
+        <label className="field"><span>{t("Email")}</span><input type="email" placeholder={t("Optional")} {...bind("email")} /></label>
+        <div className="field-h">{t("Connect accounts (optional)")}</div>
+        {social("facebook", "Facebook")}
+        {social("instagram", "Instagram")}
+        {social("tiktok", "TikTok")}
+      </div>
+    </>
   );
 }
 
 export function Welcome({ onSave, lang, onLang }) {
   const t = useT();
-  const s = useSync();
   const [f, setF] = useState(emptyProfile);
   return (
     <Modal locked tone="info" icon="user" title={t("Welcome! Set up your profile")}
-      text={t("Your name and student ID are required. They're saved on this device, and in your account if you sign in.")}
+      text={t("Your name and student ID are required. They're saved on this device.")}
       cancelLabel={null} confirmLabel={t("Save and continue")}
       confirmDisabled={!(f.name.trim() && f.studentId.trim())} onConfirm={() => onSave(clean(f))}>
       <div className="field-h">{t("Choose your language")}</div>
@@ -45,11 +116,6 @@ export function Welcome({ onSave, lang, onLang }) {
           <button type="button" key={l.id} className={lang === l.id ? "on" : ""} onClick={() => onLang(l.id)}>{l.label}</button>
         ))}
       </div>
-      {s.enabled && (
-        <button type="button" className="google-btn" disabled={!s.ready} onClick={() => signInGoogle().catch(console.error)}>
-          {t("Already have an account? Sign in with Google")}
-        </button>
-      )}
       <Fields f={f} setF={setF} />
     </Modal>
   );
@@ -61,7 +127,7 @@ export default function Profile({ profile, setProfile, settings, setSettings, cl
   const [saved, setSaved] = useState(false);
   const ok = f.name.trim() && f.studentId.trim();
   return (
-    <div>
+    <div className="profile-page">
       <div className="card">
         <strong>{t("Your profile")}</strong>
         <Fields f={f} setF={setF} />

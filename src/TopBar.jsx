@@ -1,15 +1,13 @@
 import { useState } from "react";
 import { I } from "./Icons";
-import { useSync } from "./sync";
 import { useT } from "./i18n";
 
 const initials = (n) => (n || "").trim().split(/\s+/).slice(0, 2).map((w) => (w[0] || "").toUpperCase()).join("") || "?";
 
 export default function TopBar({ profile, subjects, tasks, bell, setTab, onMenu }) {
   const t = useT();
-  const s = useSync();
   const [q, setQ] = useState("");
-  const [photoOk, setPhotoOk] = useState(true);
+  const [brokenPhoto, setBrokenPhoto] = useState("");
   const term = q.trim().toLowerCase();
   const has = (v) => (v || "").toLowerCase().includes(term);
   const results = term
@@ -49,8 +47,8 @@ export default function TopBar({ profile, subjects, tasks, bell, setTab, onMenu 
           {bell > 0 && <span className="badge">{bell}</span>}
         </button>
         <button className="me" aria-label={t("Profile")} onClick={() => setTab("Profile")}>
-          {s.user && s.user.photo && photoOk
-            ? <img className="avatar" src={s.user.photo} alt="" referrerPolicy="no-referrer" onError={() => setPhotoOk(false)} />
+          {profile.photo && brokenPhoto !== profile.photo
+            ? <img className="avatar" src={profile.photo} alt="" onError={() => setBrokenPhoto(profile.photo)} />
             : <span className="avatar">{initials(profile.name)}</span>}
           <span className="me-t"><b>{profile.name || t("Student")}</b><small>{t("Student")}</small></span>
           <I.Chevron width="16" height="16" />
