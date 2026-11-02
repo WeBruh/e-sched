@@ -9,6 +9,7 @@ const MENU = [
   { id: "Tasks", label: "Tasks", Icon: I.Tasks },
   { id: "History", label: "Attendance", Icon: I.History },
   { id: "Insights", label: "Reports", Icon: I.Insights },
+  { id: "Wallpapers", label: "Wallpapers", Icon: I.Wallpaper },
 ];
 
 // Desktop: always visible, can shrink to an icon rail. Phone: slides in from the left.

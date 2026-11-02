@@ -78,8 +78,6 @@ function Fields({ f, setF }) {
           ? <img className="profile-photo-image" src={f.photo} alt={t("Profile picture")} />
           : <div className="profile-photo-placeholder"><I.Profile width="36" height="36" /></div>}
         <div className="profile-photo-actions">
-          <strong>{t("Profile picture")}</strong>
-          <small>{t("Stored on this device. Images are resized to save space.")}</small>
           <label className="profile-photo-upload">
             {t(f.photo ? "Change photo" : "Upload photo")}
             <input type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/bmp" onChange={choosePhoto} />
@@ -93,7 +91,6 @@ function Fields({ f, setF }) {
         <label className="field"><span>{t("Student ID")} <em>*</em></span><input placeholder={t("e.g. 2024-00123")} {...bind("studentId")} /></label>
         <label className="field"><span>{t("Age")}</span><input type="number" min="1" max="99" inputMode="numeric" placeholder={t("Optional")} {...bind("age")} /></label>
         <label className="field"><span>{t("Email")}</span><input type="email" placeholder={t("Optional")} {...bind("email")} /></label>
-        <div className="field-h">{t("Connect accounts (optional)")}</div>
         {social("facebook", "Facebook")}
         {social("instagram", "Instagram")}
         {social("tiktok", "TikTok")}

@@ -503,15 +503,12 @@ button:active:not(:disabled) { transform: scale(0.94); transition-duration: 0.08
 .profile-photo-image { object-fit: cover; border: 2px solid #3a3a52; }
 .profile-photo-placeholder { display: flex; align-items: center; justify-content: center; background: var(--card2); border: 1px solid #3a3a52; color: var(--muted); }
 .profile-photo-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
-.profile-photo-actions strong, .profile-photo-actions small { width: 100%; }
-.profile-photo-actions small { color: var(--muted); }
 .profile-photo-upload { display: inline-flex !important; align-items: center; min-height: 38px; padding: 7px 14px; border: 1px solid #3a3a52; border-radius: 999px; background: var(--card2); color: var(--ink); cursor: pointer; }
 .profile-photo-upload input { display: none !important; }
 .card .profile-photo-actions button { margin: 0; }
 .profile-photo-actions .photo-error { color: #ff6b76; }
 .profile-page > .card:first-child { max-width: 1050px; margin-left: auto; margin-right: auto; }
 .profile-page > .card:first-child .fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 20px; }
-.profile-page > .card:first-child .field-h { grid-column: 1 / -1; }
 @media (max-width: 600px) {
   .profile-page > .card:first-child .fields { grid-template-columns: 1fr; }
 }
@@ -534,6 +531,7 @@ button:active:not(:disabled) { transform: scale(0.94); transition-duration: 0.08
 .wallpaper-layer.wallpaper-pastel::after { background: rgba(11, 11, 18, 0.42); }
 .wallpaper-layer.wallpaper-moon::after { background: rgba(11, 11, 18, 0.48); }
 .wallpaper-layer.wallpaper-sunset::after { background: rgba(11, 11, 18, 0.4); }
+.wallpaper-layer.wallpaper-spider::after { background: rgba(11, 11, 18, 0.2); }
 .wallpaper-layer video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center center; }
 .wallpaper-on .card { background: rgba(21, 21, 31, 0.78); backdrop-filter: blur(8px); }
 .wallpaper-on.wallpaper-ghost .card { background: rgba(21, 21, 31, 0.82); }
@@ -542,6 +540,52 @@ button:active:not(:disabled) { transform: scale(0.94); transition-duration: 0.08
 .wallpaper-on.wallpaper-moon .card { background: rgba(21, 21, 31, 0.8); }
 .wallpaper-on.wallpaper-sunset .card { background: rgba(21, 21, 31, 0.72); }
 .wallpaper-on .topbar { background: rgba(11, 11, 18, 0.66); }
+
+.wallpaper-layer img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; filter: brightness(0.45); }
+.wallpaper-porsche img { object-position: right center; }
+.wallpaper-picker { max-width: 1050px; margin: 0 auto; }
+.wallpaper-none-choice { width: min(100%, 190px); }
+.wallpaper-group { margin: 22px 0 28px; }
+.wallpaper-group h3 { margin: 0 0 12px; }
+.wallpaper-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
+.wallpaper-tile { min-width: 0; padding: 8px; overflow: hidden; border: 1px solid #3a3a52; border-radius: 14px; background: var(--card); color: var(--ink); }
+.wallpaper-tile-select { display: block; width: 100%; padding: 0; border: 0; background: transparent; color: inherit; text-align: left; cursor: pointer; }
+.wallpaper-tile.selected { border-color: var(--teal); box-shadow: 0 0 0 2px rgba(0, 210, 190, 0.28); }
+.wallpaper-preview { display: block; position: relative; width: 100%; aspect-ratio: 4 / 3; overflow: hidden; border-radius: 9px; background: var(--card2); }
+.wallpaper-preview img, .wallpaper-preview video { width: 100%; height: 100%; display: block; object-fit: cover; }
+.wallpaper-none-preview { display: grid; place-items: center; width: 100%; height: 100%; color: var(--muted); font-size: 0.85rem; }
+.wallpaper-tile-label { display: flex; justify-content: space-between; align-items: center; gap: 6px; min-height: 34px; padding: 4px 2px 0; font-size: 0.86rem; }
+.wallpaper-tile-label > span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wallpaper-selected-mark { color: var(--teal); font-size: 0.72rem; white-space: nowrap; }
+.wallpaper-delete { margin-top: 6px; padding: 4px 8px; border: 0; border-radius: 8px; background: rgba(232, 32, 47, 0.14); color: #ff6b76; cursor: pointer; }
+.wallpaper-upload { display: inline-flex; align-items: center; margin-top: 12px; padding: 10px 14px; border: 1px dashed #55556e; border-radius: 12px; color: var(--ink); cursor: pointer; }
+.wallpaper-upload input { display: none; }
+.wallpaper-upload.disabled { opacity: 0.55; cursor: wait; }
+.wallpaper-error { position: fixed; top: 12px; right: 12px; z-index: 1300; max-width: min(440px, calc(100vw - 24px)); padding: 12px 16px; border: 1px solid #b63a45; border-radius: 12px; background: #28151a; color: #ffd8dc; }
+.spider-wallpaper { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.spider-swing { position: absolute; top: 0; left: 50%; width: 0; height: 0; transform-origin: 0 0; will-change: transform; animation: spider-swing 6s ease-in-out infinite alternate; }
+.spider-bob { position: absolute; top: 0; left: 0; will-change: transform; animation: spider-bob 9s ease-in-out infinite alternate; }
+.spider-figure { position: absolute; top: 0; left: 0; height: min(44vh, 480px); aspect-ratio: 550 / 932; transform: translateX(-50%); }
+.spider-thread { position: absolute; left: 50%; top: 25.1%; width: 2px; height: 150vh; transform: translate(-50%, -100%); background: #ff263b; opacity: 0.9; }
+.spider-art { position: absolute; inset: 0; background: #ff263b; opacity: 1; transform-origin: 50% 25.1%; will-change: transform; -webkit-mask: url("/wallpapers/spider.png") center / contain no-repeat; mask: url("/wallpapers/spider.png") center / contain no-repeat; animation: spider-tilt 3.7s ease-in-out infinite alternate; }
+@keyframes spider-swing { from { transform: rotate(-7deg); } to { transform: rotate(7deg); } }
+@keyframes spider-bob { from { transform: translateY(8vh); } to { transform: translateY(26vh); } }
+@keyframes spider-tilt { from { transform: rotate(-3deg); } to { transform: rotate(3deg); } }
+.spider-wallpaper-preview .spider-figure { height: 130%; }
+.spider-wallpaper-preview .spider-thread { height: 150%; }
+.spider-wallpaper-preview .spider-swing { animation-duration: 3.2s; }
+.spider-wallpaper-preview .spider-bob { animation-duration: 5s; }
+.spider-wallpaper-preview .spider-art { background: #ff4d5a; }
+@media (prefers-reduced-motion: reduce) {
+  .spider-swing, .spider-bob, .spider-art { animation: none; }
+  .spider-bob { transform: translateY(16vh); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .spider-wallpaper-preview .spider-bob { transform: translateY(10%); }
+}
+@media (max-width: 480px) {
+  .wallpaper-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+}
 .main-col { min-width: 0; }
 .content { padding: 12px 14px 110px; max-width: 1500px; margin: 0 auto; animation: page 0.5s cubic-bezier(0.2, 0.9, 0.3, 1) both; }
 .content > h2 { margin: 10px 0 14px; }
@@ -563,11 +607,12 @@ button:active:not(:disabled) { transform: scale(0.94); transition-duration: 0.08
 .badge { position: absolute; top: -4px; right: -4px; min-width: 18px; height: 18px; padding: 0 4px; box-sizing: border-box; border-radius: 9px; background: var(--red); color: #fff; font-size: 11px; display: flex; align-items: center; justify-content: center; }
 .me { display: flex; align-items: center; gap: 10px; padding: 0; background: none; border: none; color: var(--ink); }
 .avatar { width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, #e8202f, #7a0f18); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 500; flex: none; }
+img.avatar { object-fit: cover; }
 .me-t, .me > svg { display: none; }
 .me-t { text-align: left; line-height: 1.2; }
 .me-t b { display: block; font-weight: 500; }
 .me-t small { color: var(--muted); }
-img.avatar { object-fit: cover; }
+
 
 /* ===== sidebar (website only) ===== */
 .sidebar { display: none; }

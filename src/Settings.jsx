@@ -20,7 +20,6 @@ export default function Settings({ settings, setSettings, classes, subjects }) {
   const set = (patch) => setSettings({ ...settings, ...patch });
   const sound = settings.sound || "glass";
   const size = settings.textSize || "l";
-  const wallpaper = settings.wallpaper || "none";
   const located = settings.lat !== null;
   const permText = {
     granted: t("allowed"), denied: t("blocked in phone settings"), unsupported: t("not supported here"), default: t("not allowed yet"),
@@ -50,23 +49,6 @@ export default function Settings({ settings, setSettings, classes, subjects }) {
         <div className="radios">
           {[["m", "Normal"], ["l", "Large"], ["xl", "Extra large"]].map(([id, label]) => (
             <Radio key={id} name="size" checked={size === id} label={t(label)} onChange={() => set({ textSize: id })} />
-          ))}
-        </div>
-      </div>
-
-      <div className="card chart">
-        <strong>{t("Background wallpaper")}</strong>
-        <div className="note">{t("The video is centered and dimmed so text stays readable.")}</div>
-        <div className="radios">
-          {[
-            ["none", "No video"],
-            ["ghost", "Ghost Rider Skull"],
-            ["spring", "Spring Stroll"],
-            ["pastel", "Pastel Bloom"],
-            ["moon", "Full Moon"],
-            ["sunset", "Sunset Passenger"],
-          ].map(([value, label]) => (
-            <Radio key={value} name="wallpaper" checked={wallpaper === value} label={t(label)} onChange={() => set({ wallpaper: value })} />
           ))}
         </div>
       </div>

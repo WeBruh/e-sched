@@ -1,10 +1,14 @@
-const CACHE = "esched-v7";
+const CACHE = "esched-v9";
 const WALLPAPERS = [
+  "/wallpapers/spider.png",
   "/wallpapers/ghost-rider-skull.mp4",
   "/wallpapers/spring-stroll-with-her.mp4",
-  "/wallpapers/pastel-bloom-anime-girl.mp4",
-  "/wallpapers/full-moon.mp4",
-  "/wallpapers/sunset-passenger.mp4",
+  "/wallpapers/stargirl.jpg",
+  "/wallpapers/starboy-punk.jpg",
+  "/wallpapers/starboy-miles.jpg",
+  "/wallpapers/porsche.jpg",
+  "/wallpapers/glasses-girl.jpg",
+  "/wallpapers/lego-boy.jpg",
 ];
 
 async function precache() {

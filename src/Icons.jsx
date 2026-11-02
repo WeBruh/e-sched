@@ -14,6 +14,7 @@ export const I = {
   Insights: make(<path d="M5 19V11M12 19V5M19 19v-6" />),
   Profile: make(<><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 4-6 8-6s8 2 8 6" /></>),
   Settings: make(<><circle cx="12" cy="12" r="3" /><circle cx="12" cy="12" r="6.5" />{teeth}</>),
+  Wallpaper: make(<><rect x="3" y="4" width="18" height="16" rx="2" /><circle cx="8.5" cy="9" r="1.5" /><path d="m21 15-5-5L5 20" /></>),
   Plus: make(<path d="M12 5v14M5 12h14" />),
   Bell: make(<path d="M6 17h12l-1.5-2V11a4.5 4.5 0 0 0-9 0v4zM10 20h4" />),
   Search: make(<><circle cx="11" cy="11" r="6" /><path d="M20 20l-4.2-4.2" /></>),
