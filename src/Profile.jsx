@@ -3,9 +3,9 @@ import Modal from "./Modal";
 import Settings from "./Settings";
 import { LANGS, useT } from "./i18n";
 import { I } from "./Icons";
+import { cleanProfile, emptyProfile } from "./profileData";
 
-export const emptyProfile = { name: "", studentId: "", age: "", email: "", facebook: "", instagram: "", tiktok: "", photo: "" };
-const clean = (f) => ({ ...f, name: f.name.trim(), studentId: f.studentId.trim() });
+export { emptyProfile };
 
 const MAX_PHOTO_BYTES = 10 * 1024 * 1024;
 const PHOTO_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif", "image/bmp"]);
@@ -109,7 +109,7 @@ export function Welcome({ onSave, lang, onLang }) {
     <Modal locked tone="info" icon="user" title={t("Welcome! Set up your profile")}
       text={t("Your name and student ID are required. They're saved on this device.")}
       cancelLabel={null} confirmLabel={t("Save and continue")}
-      confirmDisabled={!(f.name.trim() && f.studentId.trim())} onConfirm={() => onSave(clean(f))}>
+      confirmDisabled={!(f.name.trim() && f.studentId.trim())} onConfirm={() => onSave(cleanProfile(f))}>
       <div className="field-h">{t("Choose your language")}</div>
       <div className="lang-pick">
         {LANGS.map((l) => (
@@ -131,7 +131,7 @@ export default function Profile({ profile, setProfile, settings, setSettings, cl
       <div className="card">
         <strong>{t("Your profile")}</strong>
         <Fields f={f} setF={setF} />
-        <button className="primary" style={{ marginTop: 14 }} disabled={!ok} onClick={() => { setProfile(clean(f)); setSaved(true); }}>{t("Save profile")}</button>
+        <button className="primary" style={{ marginTop: 14 }} disabled={!ok} onClick={() => { setProfile(cleanProfile(f)); setSaved(true); }}>{t("Save profile")}</button>
       </div>
       <Settings settings={settings} setSettings={setSettings} classes={classes} subjects={subjects} />
 

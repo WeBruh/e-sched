@@ -11,7 +11,9 @@ const REASONS = {
 };
 
 // reasons are saved in English and translated when shown
-export const reasonText = (r, t) => (r.reason ? [t(r.reason), r.detail].filter(Boolean).join(" — ") : r.note);
+const reasonText = (r, t) => (r.reason ? [t(r.reason), r.detail].filter(Boolean).join(" — ") : r.note);
+
+export { reasonText };
 
 export function reasonHandlers(setAttendance) {
   return {
