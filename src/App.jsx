@@ -18,6 +18,7 @@ import TopBar from "./TopBar";
 import Skeleton from "./Skeleton";
 import BackupNudge from "./BackupNudge";
 import IdleToday from "./IdleToday";
+import WallpaperPicker from "./WallpaperPicker";
 import useLocalStorage from "./useLocalStorage";
 import { I18nContext, makeI18n, detectLang } from "./i18n";
 import { askPermission } from "./notifications";
@@ -27,7 +28,7 @@ import { buildRows, isoDate } from "./stats";
 import { WALLPAPERS } from "./wallpapers";
 import SpiderWallpaper from "./SpiderWallpaper";
 
-const TITLES = { History: "Attendance", Insights: "Reports" };
+const TITLES = { History: "Attendance", Insights: "Reports", Wallpapers: "Wallpapers" };
 const SIZES = { m: "17px", l: "19px", xl: "21px" };
 const SKELETON_MS = 1300; // how long the placeholder screen shows. Set to 0 to skip it.
 
@@ -209,6 +210,7 @@ export default function App() {
                 {page === "History" && <History subjects={subjects} classes={classes} attendance={attendance} />}
                 {page === "Insights" && <Insights rows={rows} subjects={subjects} onBack={back} />}
                 {page === "Records" && <Records rows={rows} setAttendance={setAttendance} initial={recStatus} onBack={back} />}
+                {page === "Wallpapers" && <WallpaperPicker settings={settings} setSettings={setSettings} />}
                 {page === "Profile" && (
                   <Profile profile={profile} setProfile={setProfile} settings={settings} setSettings={setSettings} classes={classes} subjects={subjects} />
                 )}
