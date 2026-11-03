@@ -247,6 +247,8 @@ const TL = {
   "Sunday": "Linggo",
   "Task reminder": "Paalala sa gawain",
   "Tasks": "Mga Gawain",
+  "Time to check out": "Oras na para mag-check out",
+  "Today's task": "Gawain ngayong araw",
   "Teacher": "Guro",
   "Teachers and subjects": "Mga guro at asignatura",
   "Test": "Pagsubok",

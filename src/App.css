@@ -532,6 +532,7 @@ button:active:not(:disabled) { transform: scale(0.94); transition-duration: 0.08
 .wallpaper-layer.wallpaper-moon::after { background: rgba(11, 11, 18, 0.48); }
 .wallpaper-layer.wallpaper-sunset::after { background: rgba(11, 11, 18, 0.4); }
 .wallpaper-layer.wallpaper-spider::after { background: rgba(11, 11, 18, 0.2); }
+.wallpaper-layer.wallpaper-idle::after { background: rgba(11, 11, 18, 0.06); }
 .wallpaper-layer video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center center; }
 .wallpaper-on .card { background: rgba(21, 21, 31, 0.78); backdrop-filter: blur(8px); }
 .wallpaper-on.wallpaper-ghost .card { background: rgba(21, 21, 31, 0.82); }
@@ -542,6 +543,7 @@ button:active:not(:disabled) { transform: scale(0.94); transition-duration: 0.08
 .wallpaper-on .topbar { background: rgba(11, 11, 18, 0.66); }
 
 .wallpaper-layer img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; filter: brightness(0.45); }
+.wallpaper-layer.wallpaper-idle img { filter: brightness(0.9); }
 .wallpaper-porsche img { object-position: right center; }
 .wallpaper-picker { max-width: 1050px; margin: 0 auto; }
 .wallpaper-none-choice { width: min(100%, 190px); }
@@ -590,6 +592,16 @@ button:active:not(:disabled) { transform: scale(0.94); transition-duration: 0.08
 .content { padding: 12px 14px 110px; max-width: 1500px; margin: 0 auto; animation: page 0.5s cubic-bezier(0.2, 0.9, 0.3, 1) both; }
 .content > h2 { margin: 10px 0 14px; }
 .shell.idle-hidden .content { display: none; }
+.shell.idle-hidden .bnav { opacity: 0; pointer-events: none; }
+.idle-ticker { position: fixed; inset: calc(72px + env(safe-area-inset-top, 0px)) 12px calc(12px + env(safe-area-inset-bottom, 0px)); z-index: 55; display: grid; place-items: center; pointer-events: none; }
+.idle-ticker-card { display: flex; flex-direction: column; align-items: center; gap: 10px; width: min(100%, 560px); padding: 24px; border: 1px solid rgba(255,255,255,0.28); border-radius: 22px; background: rgba(13,13,21,0.62); backdrop-filter: blur(8px); color: #fff; text-align: center; text-shadow: 0 2px 12px rgba(0,0,0,0.85); animation: idle-ticker-in 0.35s ease both; }
+.idle-ticker-label { color: #fff; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; }
+.idle-ticker-card strong { font-size: clamp(1.7rem, 7vw, 3.4rem); line-height: 1.12; font-weight: 700; overflow-wrap: anywhere; }
+.idle-ticker-detail { font-size: 1.1rem; font-weight: 500; }
+@keyframes idle-ticker-in { from { opacity: 0; transform: translateY(10px) scale(0.98); } to { opacity: 1; transform: none; } }
+@media (min-width: 900px) {
+  .idle-ticker { display: none; }
+}
 
 /* ===== top bar ===== */
 .topbar { position: sticky; top: 0; z-index: 60; display: flex; align-items: center; gap: 12px; padding: calc(10px + env(safe-area-inset-top, 0px)) 14px 10px; background: rgba(11, 11, 18, 0.85); backdrop-filter: blur(12px); border-bottom: 1px solid #1d1d2b; }

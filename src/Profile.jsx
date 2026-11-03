@@ -53,12 +53,6 @@ function Fields({ f, setF }) {
   const t = useT();
   const [photoError, setPhotoError] = useState("");
   const bind = (k) => ({ value: f[k] || "", onChange: (e) => setF({ ...f, [k]: e.target.value }) });
-  const social = (k, label) => (
-    <label className="field">
-      <span>{label}{(f[k] || "").trim() && <i className="ok">{t("connected")}</i>}</span>
-      <input placeholder={t("@username or link")} {...bind(k)} />
-    </label>
-  );
   async function choosePhoto(e) {
     const file = e.target.files?.[0];
     e.target.value = "";
@@ -90,10 +84,6 @@ function Fields({ f, setF }) {
         <label className="field"><span>{t("Full name")} <em>*</em></span><input placeholder={t("Your full name")} {...bind("name")} /></label>
         <label className="field"><span>{t("Student ID")} <em>*</em></span><input placeholder={t("e.g. 2024-00123")} {...bind("studentId")} /></label>
         <label className="field"><span>{t("Age")}</span><input type="number" min="1" max="99" inputMode="numeric" placeholder={t("Optional")} {...bind("age")} /></label>
-        <label className="field"><span>{t("Email")}</span><input type="email" placeholder={t("Optional")} {...bind("email")} /></label>
-        {social("facebook", "Facebook")}
-        {social("instagram", "Instagram")}
-        {social("tiktok", "TikTok")}
       </div>
     </>
   );

@@ -1,15 +1,5 @@
 const CACHE = "esched-v9";
-const WALLPAPERS = [
-  "/wallpapers/spider.png",
-  "/wallpapers/ghost-rider-skull.mp4",
-  "/wallpapers/spring-stroll-with-her.mp4",
-  "/wallpapers/stargirl.jpg",
-  "/wallpapers/starboy-punk.jpg",
-  "/wallpapers/starboy-miles.jpg",
-  "/wallpapers/porsche.jpg",
-  "/wallpapers/glasses-girl.jpg",
-  "/wallpapers/lego-boy.jpg",
-];
+const WP_CACHE = "esched-wp"; // live wallpapers saved by the app (only the one you pick)
 
 async function precache() {
   const cache = await caches.open(CACHE);
@@ -18,7 +8,7 @@ async function precache() {
   await cache.put("/index.html", res.clone());
   await cache.put("/", res);
   const assets = [...html.matchAll(/(?:src|href)="(\/[^"]+)"/g)].map((m) => m[1]);
-  const files = [...assets, "/icon-192.png", "/icon-512.png", "/manifest.webmanifest", "/sounds/check.wav"];
+  const files = [...assets, "/icon-192.png", "/icon-512.png", "/manifest.webmanifest", "/sounds/check.wav", "/wallpapers/spider.png", "/flash/pic1.jpg", "/flash/pic2.jpg", "/flash/pic3.jpg", "/flash/pic4.jpg", "/flash/pic5.jpg"];
   for (const u of assets.filter((a) => a.endsWith(".css"))) {
     try {
       const css = await (await fetch(u)).text();
@@ -26,7 +16,6 @@ async function precache() {
     } catch {}
   }
   await Promise.all(files.map((u) => cache.add(u).catch(() => {})));
-  await cache.addAll(WALLPAPERS);
 }
 
 self.addEventListener("install", (e) => e.waitUntil(precache().then(() => self.skipWaiting())));
@@ -34,7 +23,7 @@ self.addEventListener("install", (e) => e.waitUntil(precache().then(() => self.s
 self.addEventListener("activate", (e) => {
   e.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
+      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE && k !== WP_CACHE).map((k) => caches.delete(k))))
       .then(() => clients.claim())
   );
 });

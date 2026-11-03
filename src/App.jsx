@@ -17,8 +17,7 @@ import Sidebar from "./Sidebar";
 import TopBar from "./TopBar";
 import Skeleton from "./Skeleton";
 import BackupNudge from "./BackupNudge";
-import WallpaperPicker from "./WallpaperPicker";
-import { getCustomWallpaper } from "./customWallpapers";
+import IdleToday from "./IdleToday";
 import useLocalStorage from "./useLocalStorage";
 import { I18nContext, makeI18n, detectLang } from "./i18n";
 import { askPermission } from "./notifications";
@@ -26,8 +25,9 @@ import { requestPersistence } from "./persist";
 import { unlockAudio, setSound } from "./sound";
 import { buildRows, isoDate } from "./stats";
 import { WALLPAPERS } from "./wallpapers";
+import SpiderWallpaper from "./SpiderWallpaper";
 
-const TITLES = { History: "Attendance", Insights: "Reports", Wallpapers: "Wallpapers" };
+const TITLES = { History: "Attendance", Insights: "Reports" };
 const SIZES = { m: "17px", l: "19px", xl: "21px" };
 const SKELETON_MS = 1300; // how long the placeholder screen shows. Set to 0 to skip it.
 
@@ -114,17 +114,6 @@ export default function App() {
 
   useEffect(() => { document.documentElement.style.fontSize = SIZES[settings.textSize] || SIZES.l; }, [settings.textSize]);
   useEffect(() => { setSound(settings.sound || "glass"); }, [settings.sound]);
-  useEffect(() => {
-    const key = "esched_spider_wallpaper_default_v1";
-    try {
-      if (localStorage.getItem(key) === "1") return;
-      localStorage.setItem(key, "1");
-    } catch {
-      if (settings.wallpaper === "none") setSettings({ ...settings, wallpaper: "spider" });
-      return;
-    }
-    if (settings.wallpaper === "none") setSettings({ ...settings, wallpaper: "spider" });
-  }, [settings, setSettings]);
 
   useEffect(() => {
     const block = (e) => { if (!/^(INPUT|TEXTAREA)$/.test(e.target.tagName)) e.preventDefault(); };
@@ -155,68 +144,30 @@ export default function App() {
   const back = () => setTab("Dashboard");
   const openRecords = (s) => { setRecStatus(s); setTab("Records"); };
   const page = tab === "Settings" ? "Profile" : tab; // Settings now lives inside Profile
-  const [customWp, setCustomWp] = useState(null);
-  const [wallpaperError, setWallpaperError] = useState("");
-  const selectedWallpaper = typeof settings.wallpaper === "string" ? settings.wallpaper : "spider";
-  const customId = selectedWallpaper.startsWith("custom-") ? selectedWallpaper : null;
-  const customRequestKey = useMemo(() => ({ wallpaper: settings.wallpaper }), [settings.wallpaper]);
-  const builtInWp = WALLPAPERS.find((item) => item.id === selectedWallpaper);
-  const wp = builtInWp || (customWp?.key === customRequestKey ? customWp : null);
-  const wallpaper = wp?.src;
 
-  useEffect(() => {
-    if (!customId) return undefined;
-    let active = true;
-    let objectUrl;
-    getCustomWallpaper(customId)
-      .then((saved) => {
-        if (!active) return;
-        if (!saved) {
-          setWallpaperError({ id: customId, message: t("This custom wallpaper is no longer available.") });
-          return;
-        }
-        objectUrl = URL.createObjectURL(saved.blob);
-        setCustomWp({ ...saved, src: objectUrl, key: customRequestKey });
-        setWallpaperError(null);
-      })
-      .catch((cause) => {
-        if (active) {
-          setWallpaperError({
-            id: customId,
-            message: cause instanceof Error ? cause.message : t("Could not load your wallpaper."),
-          });
-        }
-      });
-    return () => {
-      active = false;
-      if (objectUrl) URL.revokeObjectURL(objectUrl);
-    };
-  }, [customId, customRequestKey, t]);
+  // Wallpaper: list lives in wallpapers.js (image = still, video = live)
+  const saved = settings.wallpaper;
+  // spider = default until the user picks something (also if a saved wallpaper was removed)
+  const wpId = saved === "none" ? "none" : WALLPAPERS.some((w) => w.id === saved) ? saved : "spider";
+  const wp = WALLPAPERS.find((w) => w.id === wpId);
+  const wallpaper = wp ? wp.src : null;
 
+  // Live wallpapers: save only the chosen video for offline use
   useEffect(() => {
-    if (!builtInWp || builtInWp.type !== "video" || !("caches" in window)) return;
+    if (!wp || wp.type !== "video" || !("caches" in window)) return;
     caches.open("esched-wp")
-      .then((cache) => cache.match(builtInWp.src).then((hit) => hit || cache.add(builtInWp.src)))
+      .then((c) => c.match(wp.src).then((hit) => hit || c.add(wp.src)))
       .catch(() => {});
-  }, [builtInWp]);
+  }, [wp]);
 
   return (
     <I18nContext.Provider value={i18n}>
       {wp && (
-        <div className={`wallpaper-layer wallpaper-${wp.id}`} aria-hidden="true">
-          {wp.type === "image" ? (
+        <div className={`wallpaper-layer wallpaper-${wp.id} ${idleHidden ? "wallpaper-idle" : ""}`} aria-hidden="true">
+          {wp.type === "spider" ? (
+            <SpiderWallpaper />
+          ) : wp.type === "image" ? (
             <img key={wp.src} src={wp.src} alt="" />
-          ) : wp.type === "spider" ? (
-            <div className="spider-wallpaper">
-              <div className="spider-swing">
-                <div className="spider-bob">
-                  <div className="spider-figure">
-                    <i className="spider-thread" />
-                    <div className="spider-art" />
-                  </div>
-                </div>
-              </div>
-            </div>
           ) : (
             <video key={wp.src} autoPlay muted loop playsInline preload="none">
               <source src={wp.src} type="video/mp4" />
@@ -224,9 +175,9 @@ export default function App() {
           )}
         </div>
       )}
-      <div className={`shell ${wallpaper ? `wallpaper-on wallpaper-${wp.id}` : ""} ${idleHidden ? "idle-hidden" : ""}`}>
-        {wallpaperError?.id === customId && <div className="wallpaper-error" role="alert">{wallpaperError.message}</div>}
-        <Reminders tasks={tasks} enabled={settings.reminders !== false} flashOn={settings.flash !== false} />
+      <div className={`shell ${wallpaper ? `wallpaper-on wallpaper-${wpId}` : ""} ${idleHidden ? "idle-hidden" : ""}`}>
+        <Reminders tasks={tasks} classes={classes} subjects={subjects} attendance={attendance} grace={settings.grace}
+          enabled={settings.reminders !== false} flashOn={settings.flash !== false} />
         <AlertPopup />
         <ScreenFlash enabled={settings.flash !== false} />
         <PullRefresh />
@@ -235,6 +186,9 @@ export default function App() {
 
         <div className="main-col">
           <TopBar profile={profile} subjects={subjects} tasks={tasks} bell={bell} setTab={setTab} onMenu={() => setMenuOpen(true)} />
+          {ready && idleHidden && (
+            <IdleToday classes={classes} subjects={subjects} tasks={tasks} />
+          )}
 
           <main className="content" key={ready ? page : "sk"}>
             {!ready ? <Skeleton /> : (
@@ -255,7 +209,6 @@ export default function App() {
                 {page === "History" && <History subjects={subjects} classes={classes} attendance={attendance} />}
                 {page === "Insights" && <Insights rows={rows} subjects={subjects} onBack={back} />}
                 {page === "Records" && <Records rows={rows} setAttendance={setAttendance} initial={recStatus} onBack={back} />}
-                {page === "Wallpapers" && <WallpaperPicker settings={settings} setSettings={setSettings} />}
                 {page === "Profile" && (
                   <Profile profile={profile} setProfile={setProfile} settings={settings} setSettings={setSettings} classes={classes} subjects={subjects} />
                 )}

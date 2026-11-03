@@ -1,6 +1,4 @@
-// One alert per class or task:
-//  - app open   -> a small banner at the top (no second system notification)
-//  - app closed -> one system notification
+// Alerts appear in-app and, when allowed, in the phone's notification tray.
 export const configureAlerts = () => {}; // kept so older imports keep working
 
 export async function askPermission() {
@@ -12,7 +10,6 @@ export async function notify(title, body, tag) {
   const kind = tag.startsWith("task") ? "Task reminder" : tag === "test" ? "Test" : "Class alert";
   window.dispatchEvent(new CustomEvent("esched-alert", { detail: { title, body, kind } }));
 
-  if (document.visibilityState === "visible") return;
   if (!("Notification" in window) || Notification.permission !== "granted") return;
   const opts = {
     body, tag, icon: "/icon-192.png", badge: "/icon-192.png",

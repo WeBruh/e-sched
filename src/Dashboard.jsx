@@ -4,11 +4,10 @@ import CountUp from "./CountUp";
 import Empty from "./Empty";
 import Ring from "./Ring";
 import { Time12 } from "./TimeField";
-import { fmt12 } from "./time";
 import { I } from "./Icons";
 import ReasonModal, { reasonHandlers } from "./ReasonModal";
 import { isoDate, toDate, fmtCountdown, distanceMeters, summarize, buildRows, weekStart } from "./stats";
-import { notify, once } from "./notifications";
+import { once } from "./notifications";
 import { playCheck, playMiss } from "./sound";
 import { flash } from "./flash";
 import { motivation } from "./motivation";
@@ -40,7 +39,6 @@ export default function Dashboard({ subjects, classes, attendance, setAttendance
   const dayName = DAY_NAMES[now.getDay()];
   const grace = settings.grace * MIN;
   const located = settings.lat !== null;
-  const alertsOn = settings.reminders !== false;
   const keyOf = (c) => `${c.id}_${date}`;
   const recOf = (c) => attendance[keyOf(c)] || {};
   const h = reasonHandlers(setAttendance);
@@ -78,25 +76,6 @@ export default function Dashboard({ subjects, classes, attendance, setAttendance
         if (isOpen(next[k])) next[k] = { ...next[k], classId: c.id, date, status: "Absent", auto: true };
       });
       return next;
-    });
-  });
-
-  // one alert per class: it says when check-in is open and when you'll be marked late
-  useEffect(() => {
-    if (!alertsOn) return;
-    const n = now.getTime();
-    todays.forEach((c) => {
-      const r = recOf(c), s = c.startAt.getTime(), k = keyOf(c);
-      if (r.checkIn || r.status === "Excused" || n < s - 10 * MIN || n >= s + grace) return;
-      if (!once(`${k}_pre`)) return;
-      const name = c.subject.name;
-      const late = new Date(s + grace).toLocaleTimeString(locale, { hour: "numeric", minute: "2-digit" });
-      const m = Math.max(1, Math.round((s - n) / MIN));
-      const title = s > n ? t("{name} starts in {m} min", { name, m }) : t("{name} has started", { name });
-      const body = c.subject.room
-        ? t("{start} • Room {room}. Check in before {late} or you'll be marked late.", { start: fmt12(c.start), room: c.subject.room, late })
-        : t("{start}. Check in before {late} or you'll be marked late.", { start: fmt12(c.start), late });
-      notify(title, body, `${k}_pre`);
     });
   });
 
