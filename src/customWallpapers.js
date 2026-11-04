@@ -37,10 +37,6 @@ export function listCustomWallpapers() {
   return transact("readonly", (store) => store.getAll());
 }
 
-export function getCustomWallpaper(id) {
-  return transact("readonly", (store) => store.get(id));
-}
-
 export function saveCustomWallpaper(wallpaper) {
   return transact("readwrite", (store) => store.add(wallpaper));
 }

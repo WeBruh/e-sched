@@ -1,4 +1,4 @@
-const CACHE = "esched-v9";
+const CACHE = "esched-v10";
 const WP_CACHE = "esched-wp"; // live wallpapers saved by the app (only the one you pick)
 
 async function precache() {

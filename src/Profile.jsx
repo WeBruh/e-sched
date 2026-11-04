@@ -4,6 +4,8 @@ import Settings from "./Settings";
 import { LANGS, useT } from "./i18n";
 import { I } from "./Icons";
 import { cleanProfile, emptyProfile } from "./profileData";
+import SchoolYearFields from "./SchoolYearFields";
+import { defaultYear, validYear } from "./schoolYear";
 
 export { emptyProfile };
 
@@ -53,6 +55,12 @@ function Fields({ f, setF }) {
   const t = useT();
   const [photoError, setPhotoError] = useState("");
   const bind = (k) => ({ value: f[k] || "", onChange: (e) => setF({ ...f, [k]: e.target.value }) });
+  const social = (key, label) => (
+    <label className="field">
+      <span>{label}{(f[key] || "").trim() && <i className="ok">{t("connected")}</i>}</span>
+      <input placeholder={t("@username or link")} {...bind(key)} />
+    </label>
+  );
   async function choosePhoto(e) {
     const file = e.target.files?.[0];
     e.target.value = "";
@@ -72,6 +80,8 @@ function Fields({ f, setF }) {
           ? <img className="profile-photo-image" src={f.photo} alt={t("Profile picture")} />
           : <div className="profile-photo-placeholder"><I.Profile width="36" height="36" /></div>}
         <div className="profile-photo-actions">
+          <strong>{t("Profile picture")}</strong>
+          <small>{t("Stored on this device. Images are resized to save space.")}</small>
           <label className="profile-photo-upload">
             {t(f.photo ? "Change photo" : "Upload photo")}
             <input type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/bmp" onChange={choosePhoto} />
@@ -84,6 +94,11 @@ function Fields({ f, setF }) {
         <label className="field"><span>{t("Full name")} <em>*</em></span><input placeholder={t("Your full name")} {...bind("name")} /></label>
         <label className="field"><span>{t("Student ID")} <em>*</em></span><input placeholder={t("e.g. 2024-00123")} {...bind("studentId")} /></label>
         <label className="field"><span>{t("Age")}</span><input type="number" min="1" max="99" inputMode="numeric" placeholder={t("Optional")} {...bind("age")} /></label>
+        <label className="field"><span>{t("Email")}</span><input type="email" placeholder={t("Optional")} {...bind("email")} /></label>
+        <div className="field-h">{t("Connect accounts (optional)")}</div>
+        {social("facebook", "Facebook")}
+        {social("instagram", "Instagram")}
+        {social("tiktok", "TikTok")}
       </div>
     </>
   );
@@ -92,11 +107,13 @@ function Fields({ f, setF }) {
 export function Welcome({ onSave, lang, onLang }) {
   const t = useT();
   const [f, setF] = useState(emptyProfile);
+  const [year, setYear] = useState(() => defaultYear());
   return (
     <Modal locked tone="info" icon="user" title={t("Welcome! Set up your profile")}
       text={t("Your name and student ID are required. They're saved on this device.")}
       cancelLabel={null} confirmLabel={t("Save and continue")}
-      confirmDisabled={!(f.name.trim() && f.studentId.trim())} onConfirm={() => onSave(cleanProfile(f))}>
+      confirmDisabled={!(f.name.trim() && f.studentId.trim()) || !!validYear(year.start, year.end)}
+      onConfirm={() => onSave(cleanProfile(f), { yearStart: year.start, yearEnd: year.end })}>
       <div className="field-h">{t("Choose your language")}</div>
       <div className="lang-pick">
         {LANGS.map((l) => (
@@ -104,6 +121,8 @@ export function Welcome({ onSave, lang, onLang }) {
         ))}
       </div>
       <Fields f={f} setF={setF} />
+      <div className="field-h">{t("School year")}</div>
+      <div className="fields"><SchoolYearFields start={year.start} end={year.end} onChange={setYear} /></div>
     </Modal>
   );
 }

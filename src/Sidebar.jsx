@@ -1,5 +1,6 @@
 import { I } from "./Icons";
 import { useT } from "./i18n";
+import YearIcon from "./YearIcon";
 
 const MENU = [
   { id: "Dashboard", label: "Dashboard", Icon: I.Grid },
@@ -9,6 +10,7 @@ const MENU = [
   { id: "Tasks", label: "Tasks", Icon: I.Tasks },
   { id: "History", label: "Attendance", Icon: I.History },
   { id: "Insights", label: "Reports", Icon: I.Insights },
+  { id: "Year", label: "School year", Icon: YearIcon },
   { id: "Wallpapers", label: "Wallpapers", Icon: I.Wallpaper },
 ];
 

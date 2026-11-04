@@ -1,6 +1,4 @@
 // Alerts appear in-app and, when allowed, in the phone's notification tray.
-export const configureAlerts = () => {}; // kept so older imports keep working
-
 export async function askPermission() {
   if (!("Notification" in window)) return "unsupported";
   return Notification.requestPermission();

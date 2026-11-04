@@ -12,6 +12,7 @@ import Records from "./Records";
 import Profile, { Welcome, emptyProfile } from "./Profile";
 import AlertPopup from "./AlertPopup";
 import ScreenFlash from "./ScreenFlash";
+import OpenPopup from "./OpenPopup";
 import PullRefresh from "./PullRefresh";
 import Sidebar from "./Sidebar";
 import TopBar from "./TopBar";
@@ -19,6 +20,7 @@ import Skeleton from "./Skeleton";
 import BackupNudge from "./BackupNudge";
 import IdleToday from "./IdleToday";
 import WallpaperPicker from "./WallpaperPicker";
+import Year from "./Year";
 import useLocalStorage from "./useLocalStorage";
 import { I18nContext, makeI18n, detectLang } from "./i18n";
 import { askPermission } from "./notifications";
@@ -181,6 +183,7 @@ export default function App() {
           enabled={settings.reminders !== false} flashOn={settings.flash !== false} />
         <AlertPopup />
         <ScreenFlash enabled={settings.flash !== false} />
+        <OpenPopup ready={ready} />
         <PullRefresh />
 
         <Sidebar tab={page} setTab={setTab} collapsed={collapsed} setCollapsed={setCollapsed} open={menuOpen} setOpen={setMenuOpen} />
@@ -194,7 +197,7 @@ export default function App() {
           <main className="content" key={ready ? page : "sk"}>
             {!ready ? <Skeleton /> : (
               <>
-                {page !== "Dashboard" && <h2>{t(TITLES[page] || page)}</h2>}
+                {page !== "Dashboard" && page !== "Year" && <h2>{t(TITLES[page] || page)}</h2>}
 
                 {page === "Dashboard" && (
                   <>
@@ -211,6 +214,10 @@ export default function App() {
                 {page === "Insights" && <Insights rows={rows} subjects={subjects} onBack={back} />}
                 {page === "Records" && <Records rows={rows} setAttendance={setAttendance} initial={recStatus} onBack={back} />}
                 {page === "Wallpapers" && <WallpaperPicker settings={settings} setSettings={setSettings} />}
+                {page === "Year" && (
+                  <Year subjects={subjects} classes={classes} attendance={attendance} setAttendance={setAttendance}
+                    settings={settings} setSettings={setSettings} />
+                )}
                 {page === "Profile" && (
                   <Profile profile={profile} setProfile={setProfile} settings={settings} setSettings={setSettings} classes={classes} subjects={subjects} />
                 )}
@@ -221,7 +228,13 @@ export default function App() {
 
         {ready && needsProfile && (
           <Welcome lang={lang} onLang={(l) => setSettings({ ...settings, lang: l })}
-            onSave={(p) => { setProfile(p); unlockAudio(); askPermission(); requestPersistence(); }} />
+            onSave={(p, year) => {
+              setProfile(p);
+              setSettings({ ...settings, ...year });
+              unlockAudio();
+              askPermission();
+              requestPersistence();
+            }} />
         )}
       </div>
     </I18nContext.Provider>
