@@ -6,6 +6,7 @@ import Schedule from "./Schedule";
 import Tasks from "./Tasks";
 import TaskList from "./TaskList";
 import History from "./History";
+import Notes from "./Notes";
 import Reminders from "./Reminders";
 import Insights from "./Insights";
 import Records from "./Records";
@@ -229,6 +230,9 @@ export default function App() {
                 {page === "Calendar" && <Tasks tasks={tasks} setTasks={setTasks} />}
                 {page === "Tasks" && <TaskList tasks={tasks} setTasks={setTasks} go={setTab} />}
                 {page === "History" && <History subjects={subjects} classes={classes} attendance={attendance} />}
+                {page === "Notes" && (
+                  <Notes tasks={tasks} setTasks={setTasks} attendance={attendance} classes={classes} subjects={subjects} />
+                )}
                 {page === "Streak" && <StreakScreen streak={streak} onBack={back} />}
                 {page === "Insights" && <Insights rows={rows} subjects={subjects} onBack={back} />}
                 {page === "Records" && <Records rows={rows} setAttendance={setAttendance} initial={recStatus} onBack={back} />}

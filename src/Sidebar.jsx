@@ -1,5 +1,6 @@
 import { I } from "./Icons";
 import { useT } from "./i18n";
+import NotesIcon from "./NotesIcon";
 import YearIcon from "./YearIcon";
 
 const MENU = [
@@ -8,6 +9,7 @@ const MENU = [
   { id: "Schedule", label: "Schedule", Icon: I.Schedule },
   { id: "Calendar", label: "Calendar", Icon: I.Calendar },
   { id: "Tasks", label: "Tasks", Icon: I.Tasks },
+  { id: "Notes", label: "Notes", Icon: NotesIcon },
   { id: "History", label: "Attendance", Icon: I.History },
   { id: "Insights", label: "Reports", Icon: I.Insights },
   { id: "Year", label: "School year", Icon: YearIcon },
