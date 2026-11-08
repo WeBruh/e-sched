@@ -1,0 +1,41 @@
+.st-widget { display: grid; grid-template-columns: 150px 1fr; gap: 12px; padding: 14px; margin-bottom: 14px; border-radius: 24px; background: #101017; border: 1px solid #24242f; cursor: pointer; }
+.st-tile { text-align: center; padding: 16px 8px; border-radius: 20px; background: #16161f; border: 1px solid #24242f; }
+.st-flame { width: 56px; height: 64px; margin: 0 auto 8px; display: block; filter: drop-shadow(0 0 14px rgba(232, 32, 47, 0.7)); animation: st-flicker 2.4s ease-in-out infinite; transform-origin: 50% 90%; }
+.st-days { font-size: 1.15rem; font-weight: 800; }
+.st-tile small, .st-right small { display: block; opacity: 0.65; font-size: 0.7rem; }
+.st-right { display: flex; flex-direction: column; justify-content: space-between; gap: 10px; min-width: 0; }
+.st-num { font-size: 2rem; font-weight: 800; }
+.st-of { font-size: 1.1rem; opacity: 0.55; }
+.st-track { height: 14px; border-radius: 8px; background: #1f1f2a; }
+.st-fill { height: 100%; border-radius: 8px; background: #fff; box-shadow: 0 0 16px rgba(255, 255, 255, 0.55); transition: width 0.8s ease; }
+.st-week { display: flex; justify-content: space-between; padding: 10px 12px; border-radius: 18px; background: #16161f; border: 1px solid #24242f; }
+.st-d { display: flex; flex-direction: column; align-items: center; gap: 5px; font-size: 0.65rem; opacity: 0.9; }
+.st-c { width: 26px; height: 26px; border-radius: 50%; background: #1f1f2a; display: flex; align-items: center; justify-content: center; color: #fff; }
+.st-c.on { background: #e8202f; animation: st-pop 0.4s ease-out; }
+@media (max-width: 520px) { .st-widget { grid-template-columns: 112px 1fr; } .st-flame { width: 44px; height: 50px; } .st-c { width: 22px; height: 22px; } .st-week { padding: 8px; } }
+
+.st-page { max-width: 460px; margin: 0 auto; text-align: center; }
+.st-bigflame { width: 92px; height: 104px; margin: 14px auto 0; display: block; filter: drop-shadow(0 0 26px rgba(232, 32, 47, 0.75)); animation: st-flicker 2.4s ease-in-out infinite; transform-origin: 50% 90%; }
+.st-bignum { font-size: 5rem; font-weight: 800; color: #e8202f; line-height: 1; margin-top: 12px; }
+.st-biglabel { font-size: 1.2rem; font-weight: 800; color: #e8202f; margin-bottom: 18px; }
+.st-panel { padding: 14px; border-radius: 22px; background: #16161f; border: 1px solid #24242f; }
+.st-dow { display: flex; justify-content: space-between; padding: 0 6px 8px; font-size: 0.7rem; opacity: 0.6; }
+.st-dots { display: flex; justify-content: space-between; padding: 0 2px; }
+.st-msg { display: flex; gap: 8px; align-items: flex-start; text-align: left; margin-top: 14px; padding-top: 12px; border-top: 1px solid #2a2a38; font-size: 0.8rem; line-height: 1.45; opacity: 0.85; }
+.st-msg svg { flex: none; margin-top: 2px; }
+.st-best { margin-top: 12px; font-size: 0.75rem; opacity: 0.75; text-align: left; }
+
+.st-cel { position: fixed; inset: 0; z-index: 99998; display: flex; flex-direction: column; align-items: center; padding-top: 9vh; color: #fff; overflow: hidden; background: radial-gradient(circle at 50% 42%, rgba(232, 32, 47, 0.55), rgba(11, 11, 18, 0.96) 62%), #0b0b12; animation: st-fade 0.35s ease both; }
+.st-celflame { width: 54px; height: 62px; filter: drop-shadow(0 0 20px rgba(232, 32, 47, 0.9)); animation: st-flicker 2s ease-in-out infinite; transform-origin: 50% 90%; }
+.st-celnum { font-size: min(40vw, 190px); font-weight: 800; line-height: 1; margin-top: 4vh; animation: st-bigpop 0.7s cubic-bezier(0.2, 1.5, 0.4, 1) 0.15s both; text-shadow: 0 0 40px rgba(232, 32, 47, 0.7); }
+.st-cellabel { font-size: 1.3rem; font-weight: 800; margin-top: 10px; }
+.st-celsub { font-size: 0.8rem; opacity: 0.7; margin-top: 4px; }
+.st-celbottom { margin-top: auto; width: min(92vw, 420px); padding-bottom: 6vh; }
+.st-celbottom .st-panel { margin-bottom: 14px; }
+.st-btn { width: 100%; border: 1.5px solid #fff; border-radius: 26px; text-align: center; padding: 13px; font-weight: 800; cursor: pointer; color: inherit; background: transparent; }
+
+@keyframes st-flicker { 0%, 100% { transform: scale(1) rotate(0); } 25% { transform: scale(1.05, 1.09) rotate(-2deg); } 55% { transform: scale(0.97, 1.03) rotate(2deg); } 80% { transform: scale(1.03, 1.06) rotate(-1deg); } }
+@keyframes st-pop { from { transform: scale(0.4); } to { transform: scale(1); } }
+@keyframes st-bigpop { from { transform: scale(0.3); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@keyframes st-fade { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .st-flame, .st-bigflame, .st-celflame, .st-celnum, .st-c.on { animation: none; } }

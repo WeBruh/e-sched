@@ -21,16 +21,21 @@ import BackupNudge from "./BackupNudge";
 import IdleToday from "./IdleToday";
 import WallpaperPicker from "./WallpaperPicker";
 import Year from "./Year";
+import StreakWidget from "./StreakWidget";
+import StreakScreen from "./StreakScreen";
+import StreakCelebration from "./StreakCelebration";
 import useLocalStorage from "./useLocalStorage";
+import useNow from "./useNow";
 import { I18nContext, makeI18n, detectLang } from "./i18n";
 import { askPermission } from "./notifications";
 import { requestPersistence } from "./persist";
 import { unlockAudio, setSound } from "./sound";
 import { buildRows, isoDate } from "./stats";
+import { computeStreaks } from "./streak";
 import { WALLPAPERS } from "./wallpapers";
 import SpiderWallpaper from "./SpiderWallpaper";
 
-const TITLES = { History: "Attendance", Insights: "Reports", Wallpapers: "Wallpapers" };
+const TITLES = { History: "Attendance", Insights: "Reports", Wallpapers: "Wallpapers", Streak: "Streak" };
 const SIZES = { m: "17px", l: "19px", xl: "21px" };
 const SKELETON_MS = 1300; // how long the placeholder screen shows. Set to 0 to skip it.
 
@@ -61,6 +66,18 @@ export default function App() {
   const lang = settings.lang || detectLang();
   const i18n = useMemo(() => makeI18n(lang), [lang]);
   const t = i18n.t;
+
+  const streakNow = useNow(60000);
+  const streak = useMemo(
+    () => computeStreaks({
+      classes,
+      subjects,
+      attendance,
+      settings: { yearStart: settings.yearStart, yearEnd: settings.yearEnd },
+      now: streakNow,
+    }),
+    [classes, subjects, attendance, settings.yearStart, settings.yearEnd, streakNow]
+  );
 
   useEffect(() => {
     window.addEventListener("pointerdown", unlockAudio, { once: true });
@@ -201,6 +218,7 @@ export default function App() {
 
                 {page === "Dashboard" && (
                   <>
+                    <StreakWidget streak={streak} onOpen={() => setTab("Streak")} />
                     <BackupNudge hasData={subjects.length > 0} />
                     <Dashboard subjects={subjects} classes={classes} attendance={attendance} setAttendance={setAttendance}
                       settings={settings} tasks={tasks} setTasks={setTasks} openRecords={openRecords} go={setTab} profile={profile} />
@@ -211,12 +229,13 @@ export default function App() {
                 {page === "Calendar" && <Tasks tasks={tasks} setTasks={setTasks} />}
                 {page === "Tasks" && <TaskList tasks={tasks} setTasks={setTasks} go={setTab} />}
                 {page === "History" && <History subjects={subjects} classes={classes} attendance={attendance} />}
+                {page === "Streak" && <StreakScreen streak={streak} onBack={back} />}
                 {page === "Insights" && <Insights rows={rows} subjects={subjects} onBack={back} />}
                 {page === "Records" && <Records rows={rows} setAttendance={setAttendance} initial={recStatus} onBack={back} />}
                 {page === "Wallpapers" && <WallpaperPicker settings={settings} setSettings={setSettings} />}
                 {page === "Year" && (
                   <Year subjects={subjects} classes={classes} attendance={attendance} setAttendance={setAttendance}
-                    settings={settings} setSettings={setSettings} />
+                    settings={settings} setSettings={setSettings} streak={streak} />
                 )}
                 {page === "Profile" && (
                   <Profile profile={profile} setProfile={setProfile} settings={settings} setSettings={setSettings} classes={classes} subjects={subjects} />
@@ -237,6 +256,7 @@ export default function App() {
             }} />
         )}
       </div>
+      <StreakCelebration streak={streak} />
     </I18nContext.Provider>
   );
 }
