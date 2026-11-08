@@ -20,6 +20,7 @@ export default function Settings({ settings, setSettings, classes, subjects }) {
   const set = (patch) => setSettings({ ...settings, ...patch });
   const sound = settings.sound || "glass";
   const size = settings.textSize || "l";
+  const theme = settings.theme || "dark";
   const located = settings.lat !== null;
   const permText = {
     granted: t("allowed"), denied: t("blocked in phone settings"), unsupported: t("not supported here"), default: t("not allowed yet"),
@@ -49,6 +50,12 @@ export default function Settings({ settings, setSettings, classes, subjects }) {
         <div className="radios">
           {[["m", "Normal"], ["l", "Large"], ["xl", "Extra large"]].map(([id, label]) => (
             <Radio key={id} name="size" checked={size === id} label={t(label)} onChange={() => set({ textSize: id })} />
+          ))}
+        </div>
+        <strong style={{ display: "block", marginTop: 14 }}>{t("Theme")}</strong>
+        <div className="radios">
+          {[ ["dark", "Dark"], ["light", "Light"], ["auto", "Same as my phone"] ].map(([id, label]) => (
+            <Radio key={id} name="theme" checked={theme === id} label={t(label)} onChange={() => set({ theme: id })} />
           ))}
         </div>
       </div>

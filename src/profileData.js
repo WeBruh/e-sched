@@ -1,3 +1,7 @@
-export const emptyProfile = { name: "", studentId: "", age: "", email: "", facebook: "", instagram: "", tiktok: "", photo: "" };
+export const emptyProfile = { name: "", studentId: "", photo: "" };
 
-export const cleanProfile = (f) => ({ ...f, name: f.name.trim(), studentId: f.studentId.trim() });
+export const cleanProfile = (f) => ({
+  name: (f.name || "").trim(),
+  studentId: (f.studentId || "").trim(),
+  photo: f.photo || "",
+});

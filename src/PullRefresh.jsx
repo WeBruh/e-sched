@@ -2,6 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import { I } from "./Icons";
 
 const TRIGGER = 80;
+const ZONE = 140; // pull-to-refresh only starts when the finger lands within this many px of the top of the screen
+// things you drag or type in: they must never start a refresh
+const NO_REFRESH = ".nt-mini, .nt-ghost, .nt-note, .yr-scroll, input, textarea, select, [data-no-refresh]";
 
 async function refresh() {
   try {
@@ -21,7 +24,10 @@ export default function PullRefresh() {
 
   useEffect(() => {
     const down = (e) => {
-      const blocked = busy || e.touches.length !== 1 || window.scrollY > 0 || document.querySelector(".modal-back, .nav-scrim, .sheet-back");
+      const t0 = e.touches[0];
+      const blocked = busy || e.touches.length !== 1 || window.scrollY > 0 || t0.clientY > ZONE
+        || (e.target.closest && e.target.closest(NO_REFRESH))
+        || document.querySelector(".modal-back, .nav-scrim, .sheet-back");
       startY.current = blocked ? null : e.touches[0].clientY;
     };
     const move = (e) => {

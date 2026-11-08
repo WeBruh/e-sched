@@ -1,11 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import "./App.css";
+import "./theme.css";
 import Dashboard from "./Dashboard";
-import Subjects from "./Subjects";
-import Schedule from "./Schedule";
+import Classes from "./Classes";
 import Tasks from "./Tasks";
-import TaskList from "./TaskList";
-import History from "./History";
 import Notes from "./Notes";
 import Reminders from "./Reminders";
 import Insights from "./Insights";
@@ -36,7 +34,8 @@ import { computeStreaks } from "./streak";
 import { WALLPAPERS } from "./wallpapers";
 import SpiderWallpaper from "./SpiderWallpaper";
 
-const TITLES = { History: "Attendance", Insights: "Reports", Wallpapers: "Wallpapers", Streak: "Streak" };
+const TITLES = { Insights: "Reports", Year: "School year", Classes: "Subjects and schedule" };
+const ALIAS = { Settings: "Profile", Subjects: "Classes", Schedule: "Classes", History: "Year", Tasks: "Notes" };
 const SIZES = { m: "17px", l: "19px", xl: "21px" };
 const SKELETON_MS = 1300; // how long the placeholder screen shows. Set to 0 to skip it.
 
@@ -56,7 +55,7 @@ export default function App() {
   const [profile, setProfile] = useLocalStorage("profile", emptyProfile);
   const [settings, setSettings] = useLocalStorage("settings", {
     lat: null, lng: null, radius: 150, grace: 10, reminders: true,
-    sound: "glass", textSize: "l", lang: null, roast: true, flash: true,
+    sound: "glass", textSize: "l", lang: null, roast: true, flash: true, theme: "dark",
   });
 
   const setCollapsed = (v) => {
@@ -67,6 +66,21 @@ export default function App() {
   const lang = settings.lang || detectLang();
   const i18n = useMemo(() => makeI18n(lang), [lang]);
   const t = i18n.t;
+
+  const [sysLight, setSysLight] = useState(() => window.matchMedia("(prefers-color-scheme: light)").matches);
+  useEffect(() => {
+    const m = window.matchMedia("(prefers-color-scheme: light)");
+    const on = (e) => setSysLight(e.matches);
+    m.addEventListener("change", on);
+    return () => m.removeEventListener("change", on);
+  }, []);
+  const pref = settings.theme || "dark";
+  const theme = pref === "auto" ? (sysLight ? "light" : "dark") : pref;
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute("content", theme === "light" ? "#f4f3f8" : "#0b0b12");
+  }, [theme]);
 
   const streakNow = useNow(60000);
   const streak = useMemo(
@@ -99,7 +113,7 @@ export default function App() {
         setIdleHidden(false);
         return;
       }
-      timer = setTimeout(() => setIdleHidden(true), 5000);
+      timer = setTimeout(() => setIdleHidden(true), 10000);
     };
     const onActivity = () => {
       setIdleHidden(false);
@@ -164,7 +178,7 @@ export default function App() {
   const bell = tasks.filter((k) => !k.done && k.date <= todayStr).length;
   const back = () => setTab("Dashboard");
   const openRecords = (s) => { setRecStatus(s); setTab("Records"); };
-  const page = tab === "Settings" ? "Profile" : tab; // Settings now lives inside Profile
+  const page = ALIAS[tab] || tab;
 
   // Wallpaper: list lives in wallpapers.js (image = still, video = live)
   const saved = settings.wallpaper;
@@ -207,7 +221,8 @@ export default function App() {
         <Sidebar tab={page} setTab={setTab} collapsed={collapsed} setCollapsed={setCollapsed} open={menuOpen} setOpen={setMenuOpen} />
 
         <div className="main-col">
-          <TopBar profile={profile} subjects={subjects} tasks={tasks} bell={bell} setTab={setTab} onMenu={() => setMenuOpen(true)} />
+          <TopBar profile={profile} subjects={subjects} tasks={tasks} bell={bell} setTab={setTab} onMenu={() => setMenuOpen(true)}
+            dark={theme === "dark"} onTheme={() => setSettings({ ...settings, theme: theme === "light" ? "dark" : "light" })} />
           {ready && idleHidden && (
             <IdleToday classes={classes} subjects={subjects} tasks={tasks} />
           )}
@@ -225,18 +240,14 @@ export default function App() {
                       settings={settings} tasks={tasks} setTasks={setTasks} openRecords={openRecords} go={setTab} profile={profile} />
                   </>
                 )}
-                {page === "Subjects" && <Subjects subjects={subjects} setSubjects={setSubjects} classes={classes} />}
-                {page === "Schedule" && <Schedule subjects={subjects} classes={classes} setClasses={setClasses} go={setTab} />}
+                {page === "Classes" && <Classes subjects={subjects} setSubjects={setSubjects} classes={classes} setClasses={setClasses} />}
                 {page === "Calendar" && <Tasks tasks={tasks} setTasks={setTasks} />}
-                {page === "Tasks" && <TaskList tasks={tasks} setTasks={setTasks} go={setTab} />}
-                {page === "History" && <History subjects={subjects} classes={classes} attendance={attendance} />}
                 {page === "Notes" && (
                   <Notes tasks={tasks} setTasks={setTasks} attendance={attendance} classes={classes} subjects={subjects} />
                 )}
                 {page === "Streak" && <StreakScreen streak={streak} onBack={back} />}
                 {page === "Insights" && <Insights rows={rows} subjects={subjects} onBack={back} />}
                 {page === "Records" && <Records rows={rows} setAttendance={setAttendance} initial={recStatus} onBack={back} />}
-                {page === "Wallpapers" && <WallpaperPicker settings={settings} setSettings={setSettings} />}
                 {page === "Year" && (
                   <Year subjects={subjects} classes={classes} attendance={attendance} setAttendance={setAttendance}
                     settings={settings} setSettings={setSettings} streak={streak} />

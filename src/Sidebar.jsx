@@ -5,15 +5,11 @@ import YearIcon from "./YearIcon";
 
 const MENU = [
   { id: "Dashboard", label: "Dashboard", Icon: I.Grid },
-  { id: "Subjects", label: "Subjects", Icon: I.Subjects },
-  { id: "Schedule", label: "Schedule", Icon: I.Schedule },
+  { id: "Classes", label: "Classes", Icon: I.Subjects },
   { id: "Calendar", label: "Calendar", Icon: I.Calendar },
-  { id: "Tasks", label: "Tasks", Icon: I.Tasks },
   { id: "Notes", label: "Notes", Icon: NotesIcon },
-  { id: "History", label: "Attendance", Icon: I.History },
-  { id: "Insights", label: "Reports", Icon: I.Insights },
   { id: "Year", label: "School year", Icon: YearIcon },
-  { id: "Wallpapers", label: "Wallpapers", Icon: I.Wallpaper },
+  { id: "Insights", label: "Reports", Icon: I.Insights },
 ];
 
 // Desktop: always visible, can shrink to an icon rail. Phone: slides in from the left.

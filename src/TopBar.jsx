@@ -1,13 +1,15 @@
 import { useState } from "react";
 import { I } from "./Icons";
+import { Sun, Moon } from "./ThemeIcons";
 import { useT } from "./i18n";
 
 const initials = (n) => (n || "").trim().split(/\s+/).slice(0, 2).map((w) => (w[0] || "").toUpperCase()).join("") || "?";
 
-export default function TopBar({ profile, subjects, tasks, bell, setTab, onMenu }) {
+export default function TopBar({ profile, subjects, tasks, bell, setTab, onMenu, dark, onTheme }) {
   const t = useT();
   const [q, setQ] = useState("");
   const [brokenPhoto, setBrokenPhoto] = useState("");
+  const bellCount = Number.isFinite(Number(bell)) ? Math.max(0, Number(bell)) : 0;
   const term = q.trim().toLowerCase();
   const has = (v) => (v || "").toLowerCase().includes(term);
   const results = term
@@ -42,6 +44,9 @@ export default function TopBar({ profile, subjects, tasks, bell, setTab, onMenu 
       </div>
 
       <div className="tb-right">
+        <button className="tb-btn" aria-label={t("Switch theme")} onClick={onTheme}>
+          {dark ? <Sun width="20" height="20" /> : <Moon width="20" height="20" />}
+        </button>
         <button className="tb-btn" aria-label={t("Reminders")} onClick={() => setTab("Tasks")}>
           <I.Bell width="20" height="20" />
           {bell > 0 && <span className="badge">{bell}</span>}

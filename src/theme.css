@@ -1,0 +1,187 @@
+/* E-Sched theme: (1) no coloured stripe on the side of cards, (2) the Light theme.
+   The Light theme turns on when <html data-theme="light"> (Profile > Theme, or the sun/moon button). */
+
+/* ===== 1. no side stripe on any container (dark and light) ===== */
+.card, .card.chart, .card.boost, .rec-card, .rec-card.late, .rec-card.excused, .nudge, .dash .card, .toast {
+  border-left-width: 1px; border-left-style: solid; border-left-color: #2a2a3a;
+}
+.toast { border-left-color: #2f2f44; }
+.cls { border-left: none; }
+html[data-theme="light"] .card, html[data-theme="light"] .card.chart, html[data-theme="light"] .card.boost,
+html[data-theme="light"] .rec-card, html[data-theme="light"] .rec-card.late, html[data-theme="light"] .rec-card.excused,
+html[data-theme="light"] .nudge, html[data-theme="light"] .dash .card, html[data-theme="light"] .toast { border-left-color: #e6e4ee; }
+
+/* ===== 2. Light theme ===== */
+html[data-theme="light"] {
+  color-scheme: light;
+  --navy: #e8202f; --red: #e8202f; --teal: #0aa89b; --lavender: #d9d6e4;
+  --bg: #f4f3f8; --card: #ffffff; --card2: #eeedf5; --ink: #14141c; --muted: #000000;
+}
+html[data-theme="light"] input[type="date"] { color-scheme: light !important; }
+html[data-theme="light"] body { background-color: #f4f3f8; color: #14141c; }
+/* the automatic part: every dark colour in App.css, Year.css, Notes.css and Streak.css, swapped for a light one */
+/* ---- from App.css ---- */
+html[data-theme="light"] .card .pills button.on { box-shadow: 0 2px 6px rgba(20, 20, 45, 0.05); }
+html[data-theme="light"] .banner.shimmer { background-image: linear-gradient(90deg, #ffffff 25%, #e6e4ee 50%, #ffffff 75%); }
+html[data-theme="light"] button.primary:disabled::before { border: 2px solid rgba(20, 20, 45, 0.44); }
+html[data-theme="light"] body { background-image: radial-gradient(rgba(20, 20, 45, 0.06) 1px, transparent 1.5px); }
+html[data-theme="light"] .header { background-color: #f4f3f8; background-image: repeating-conic-gradient(from 0deg at 100% 0%, transparent 0 7deg, rgba(20, 20, 45, 0.08) 7deg 7.6deg),
+    linear-gradient(135deg, #f4f3f8, #1a0508); }
+html[data-theme="light"] .header h1 { color: #14141c; }
+html[data-theme="light"] .bottom-nav { background: #ffffff; border: 1px solid #e6e4ee; box-shadow: 0 4px 20px rgba(20, 20, 45, 0.15); }
+html[data-theme="light"] .bottom-nav button.active { color: #14141c; }
+html[data-theme="light"] .card { border: 1px solid #e6e4ee; }
+html[data-theme="light"] .card input, html[data-theme="light"] .card select { border: 1px solid #d9d6e4; }
+html[data-theme="light"] .card button { border: 1px solid #d9d6e4; }
+html[data-theme="light"] .file-btn { border-color: #d9d6e4; }
+html[data-theme="light"] .nextrow { border-top-color: #e6e4ee; }
+html[data-theme="light"] .alert.warn { color: #a87800; border: 1px solid rgba(224, 168, 0, 0.5); }
+html[data-theme="light"] .alert.late { color: #c81d2b; }
+html[data-theme="light"] .alert.ok { color: #168a4d; }
+html[data-theme="light"] .kp.abs { color: #c81d2b; }
+html[data-theme="light"] .kp.lat { color: #a87800; border: 1px solid rgba(224, 168, 0, 0.4); }
+html[data-theme="light"] .warn-chip b { color: #c81d2b; }
+html[data-theme="light"] .chip { border-color: #e6e4ee; }
+html[data-theme="light"] .chip.on small { color: #c81d2b; }
+html[data-theme="light"] button.wide { border: 1px solid #d9d6e4; }
+html[data-theme="light"] .gear { color: #14141c; }
+html[data-theme="light"] .alert-box { border: 1px solid #e6e4ee; }
+html[data-theme="light"] .sheet-head button { border: 1px solid #d9d6e4; }
+html[data-theme="light"] .rec { border-top: 1px solid #e6e4ee; }
+html[data-theme="light"] .rec input { border: 1px solid #d9d6e4; }
+html[data-theme="light"] .ripple { background: radial-gradient(circle, rgba(20, 20, 45, 0.5) 0%, rgba(20, 20, 45, 0) 65%); }
+html[data-theme="light"] .modal { border: 1px solid #e6e4ee; box-shadow: 0 20px 60px rgba(20, 20, 45, 0.15); }
+html[data-theme="light"] .modal.success .modal-ic { color: #168a4d; }
+html[data-theme="light"] .modal.danger .modal-ic { color: #c81d2b; }
+html[data-theme="light"] .modal.alert .modal-ic { color: #a87800; }
+html[data-theme="light"] .modal-actions .m-cancel { border: 1px solid #d9d6e4; }
+html[data-theme="light"] .m-input { border: 1px solid #d9d6e4; }
+html[data-theme="light"] .radio, html[data-theme="light"] .card .radio { border-top: 1px solid #e6e4ee; }
+html[data-theme="light"] .radio .dot { border: 2px solid #aaa7bd; }
+html[data-theme="light"] .empty-art { color: #c81d2b; }
+html[data-theme="light"] .sh { background-image: linear-gradient(90deg, #ffffff 25%, #e6e4ee 50%, #ffffff 75%); }
+html[data-theme="light"] .ag, html[data-theme="light"] .card .ag { border-top: 1px solid #e6e4ee; }
+html[data-theme="light"] .ag-tag.present { color: #168a4d; }
+html[data-theme="light"] .ag-tag.late { color: #a87800; }
+html[data-theme="light"] .ag-tag.absent { color: #c81d2b; }
+html[data-theme="light"] .rem, html[data-theme="light"] .card .rem { border-top: 1px solid #e6e4ee; }
+html[data-theme="light"] .rem small.over { color: #c81d2b; }
+html[data-theme="light"] .msg.err { color: #c81d2b; }
+html[data-theme="light"] .tile { border: 1px solid #e6e4ee; }
+html[data-theme="light"] .teacher { border-top: 1px solid #e6e4ee; }
+html[data-theme="light"] .day-row { border-top: 1px solid #e6e4ee; }
+html[data-theme="light"] .seg3 button { border: 1px solid #e6e4ee; }
+html[data-theme="light"] .seg3 button.on.absent { color: #c81d2b; }
+html[data-theme="light"] .seg3 button.on.late { border-color: #e0a800; color: #a87800; }
+html[data-theme="light"] .field em { color: #c81d2b; }
+html[data-theme="light"] .field i.ok { color: #168a4d; }
+html[data-theme="light"] .field input, html[data-theme="light"] .card .field input { border: 1px solid #d9d6e4; }
+html[data-theme="light"] .field textarea, html[data-theme="light"] .card .field textarea { border: 1px solid #d9d6e4; }
+html[data-theme="light"] .profile-photo { border-bottom: 1px solid #e6e4ee; }
+html[data-theme="light"] .profile-photo-image { border: 2px solid #d9d6e4; }
+html[data-theme="light"] .profile-photo-placeholder { border: 1px solid #d9d6e4; }
+html[data-theme="light"] .profile-photo-upload { border: 1px solid #d9d6e4; }
+html[data-theme="light"] .profile-photo-actions .photo-error { color: #c81d2b; }
+html[data-theme="light"] .file-btn { border: 1px solid #d9d6e4; }
+html[data-theme="light"] .wallpaper-layer::after { background: rgba(244, 243, 248, 0.46); }
+html[data-theme="light"] .wallpaper-layer.wallpaper-ghost::after { background: rgba(244, 243, 248, 0.56); }
+html[data-theme="light"] .wallpaper-layer.wallpaper-spring::after { background: rgba(244, 243, 248, 0.38); }
+html[data-theme="light"] .wallpaper-on .card { background: rgba(255, 255, 255, 0.78); }
+html[data-theme="light"] .wallpaper-on.wallpaper-ghost .card { background: rgba(255, 255, 255, 0.82); }
+html[data-theme="light"] .wallpaper-on.wallpaper-spring .card { background: rgba(255, 255, 255, 0.72); }
+html[data-theme="light"] .wallpaper-on .topbar { background: rgba(244, 243, 248, 0.66); }
+html[data-theme="light"] .topbar { background: rgba(244, 243, 248, 0.85); border-bottom: 1px solid #eeedf5; }
+html[data-theme="light"] .tb-search input { border: 1px solid #e6e4ee; }
+html[data-theme="light"] .sr { border: 1px solid #e6e4ee; box-shadow: 0 14px 40px rgba(20, 20, 45, 0.15); }
+html[data-theme="light"] .sr button { border-top: 1px solid #eeedf5; }
+html[data-theme="light"] .tb-btn { border: 1px solid #e6e4ee; }
+html[data-theme="light"] .sb-item.on { color: #14141c; }
+html[data-theme="light"] .qa { border: 1px solid #e6e4ee; }
+html[data-theme="light"] .bnav { background: rgba(255, 255, 255, 0.96); border-top: 1px solid #eeedf5; }
+html[data-theme="light"] .bnav button.on { color: #c81d2b; }
+html[data-theme="light"] .sheet-head button { border: 1px solid #d9d6e4; }
+html[data-theme="light"] .more-item { border-top: 1px solid #e6e4ee; }
+html[data-theme="light"] .more-item.on { color: #c81d2b; }
+html[data-theme="light"] .ci.red { color: #c81d2b; }
+html[data-theme="light"] .ci.amber { color: #a87800; }
+html[data-theme="light"] .lg { border-bottom: 1px solid #eeedf5; }
+html[data-theme="light"] .tl-item.done::before { background: #aaa7bd; }
+html[data-theme="light"] .card .tl-item b, html[data-theme="light"] .card .tl-item small { color: #14141c; }
+html[data-theme="light"] .card .ut { border-top: 1px solid #eeedf5; }
+html[data-theme="light"] .ut small.over { color: #c81d2b; }
+html[data-theme="light"] .card .ut input { border: 2px solid #aaa7bd; }
+html[data-theme="light"] .card .ut input.soon { border-color: #e0a800; }
+html[data-theme="light"] .wk-tabs button { border: 1px solid #e6e4ee; }
+html[data-theme="light"] .wk-tabs button.on small { color: #c81d2b; }
+html[data-theme="light"] .cls { background: rgba(20, 20, 45, 0.03); }
+html[data-theme="light"] .ap.am { color: #a87800; border: 1px solid rgba(224, 168, 0, 0.65); }
+html[data-theme="light"] .tp-list button.on { color: #14141c; }
+html[data-theme="light"] .tp-ap button { border: 2px solid #d9d6e4; color: #6b6b7c; }
+html[data-theme="light"] .tp-ap button.am.on { border-color: #e0a800; }
+@media (min-width: 900px) {
+  html[data-theme="light"] .sidebar { background: #ffffff; border-right: 1px solid #eeedf5; }
+  html[data-theme="light"] .hero { border: 1px solid #e6e4ee; background: linear-gradient(90deg, rgba(244, 243, 248, 0.97) 38%, rgba(244, 243, 248, 0.35) 100%), var(--hero) center / cover; }
+}
+html[data-theme="light"] .lang-pick button { border: 2px solid #d9d6e4; }
+html[data-theme="light"] .shuffle { border: 1px solid #d9d6e4; }
+html[data-theme="light"] .bnav { background: #ffffff; box-shadow: 0 12px 32px rgba(20, 20, 45, 0.14); }
+html[data-theme="light"] .bnav button { color: #6b6b7c; }
+html[data-theme="light"] .bnav button.on::after { background: linear-gradient(to bottom, rgba(20, 20, 45, 0.22), rgba(20, 20, 45, 0) 92%); }
+html[data-theme="light"] .card button.lg, html[data-theme="light"] .lg { border-bottom: 1px solid #eeedf5; }
+html[data-theme="light"] .sidebar { background: #ffffff; border-right: 1px solid #eeedf5; }
+html[data-theme="light"] .sidebar.open { box-shadow: 0 0 60px rgba(20, 20, 45, 0.17); }
+html[data-theme="light"] .sb-top { border-bottom: 1px solid #eeedf5; }
+html[data-theme="light"] .sb-toggle { border: 1px solid #e6e4ee; }
+html[data-theme="light"] .sb-item.on { color: #c81d2b; }
+html[data-theme="light"] .tb-menu { border: 1px solid #e6e4ee; }
+@media (min-width: 900px) {
+  html[data-theme="light"] .sidebar.collapsed .sb-h { background: #eeedf5; }
+}
+html[data-theme="light"] .ptr { background: #ffffff; border: 1px solid #e6e4ee; box-shadow: 0 8px 24px rgba(20, 20, 45, 0.12); color: #c81d2b; }
+html[data-theme="light"] .toast { background: #eeedf5; border: 1px solid #e6e4ee; box-shadow: 0 16px 40px rgba(20, 20, 45, 0.15); }
+html[data-theme="light"] .toast-ic { color: #c81d2b; }
+html[data-theme="light"] .tog, html[data-theme="light"] .card .tog { border-top: 1px solid #eeedf5; }
+html[data-theme="light"] .tog i, html[data-theme="light"] .card .tog i { background: #d9d6e4; }
+html[data-theme="light"] .tog i::before, html[data-theme="light"] .card .tog i::before { box-shadow: 0 2px 8px rgba(20, 20, 45, 0.06); }
+
+/* ---- from Year.css ---- */
+html[data-theme="light"] .yr-item { border-top: 1px solid rgba(20, 20, 45, 0.11); }
+html[data-theme="light"] .yr-card { background: #ffffff; border: 1px solid #eeedf5; }
+html[data-theme="light"] .yr-pctrow { color: #1b86b3; }
+html[data-theme="light"] .yr-pctrow .yr-big { color: #14141c; }
+html[data-theme="light"] .yr-dot { border: 2px solid #e6e4ee; color: #14141c; }
+html[data-theme="light"] .yr-an { background: #ffffff; border-color: #e6e4ee; }
+html[data-theme="light"] .yr-an b { color: #14141c; }
+
+/* ---- from Notes.css ---- */
+html[data-theme="light"] .nt-tab { border: 1px solid rgba(20, 20, 45, 0.2); }
+html[data-theme="light"] .nt-mini { box-shadow: 0 6px 14px rgba(20, 20, 45, 0.11); }
+html[data-theme="light"] .nt-wall { border: 1px dashed rgba(20, 20, 45, 0.15); background-image: repeating-linear-gradient(to bottom, transparent 0 53px, rgba(20, 20, 45, 0.06) 53px 54px); }
+html[data-theme="light"] .nt-note { box-shadow: 0 10px 22px rgba(20, 20, 45, 0.11); }
+html[data-theme="light"] .nt-pin { box-shadow: 0 4px 8px rgba(20, 20, 45, 0.11), inset -3px -3px 0 rgba(20, 20, 45, 0.04), inset 3px 3px 0 rgba(255, 255, 255, 0.35); }
+
+/* ---- from Streak.css ---- */
+html[data-theme="light"] .st-widget { background: #ffffff; border: 1px solid #eeedf5; }
+html[data-theme="light"] .st-tile { background: #ffffff; border: 1px solid #eeedf5; }
+html[data-theme="light"] .st-track { background: #eeedf5; }
+html[data-theme="light"] .st-week { background: #ffffff; border: 1px solid #eeedf5; }
+html[data-theme="light"] .st-c { background: #eeedf5; color: #14141c; }
+html[data-theme="light"] .st-panel { background: #ffffff; border: 1px solid #eeedf5; }
+html[data-theme="light"] .st-msg { border-top: 1px solid #e6e4ee; }
+
+/* ===== fixes the automatic part cannot guess ===== */
+html[data-theme="light"] .chip.on small, html[data-theme="light"] .wk-tabs button.on small { color: #ffe3e5; }
+html[data-theme="light"] .card, html[data-theme="light"] .yr-card, html[data-theme="light"] .st-widget { box-shadow: 0 2px 10px rgba(30, 30, 60, 0.07); }
+/* ring and chart tracks drawn with white lines */
+html[data-theme="light"] [stroke^="rgba(255,255,255"] { stroke: rgba(20, 20, 45, 0.12); }
+/* round check marks stay white on red */
+html[data-theme="light"] .st-c.on, html[data-theme="light"] .yr-dot.on { background: #e8202f; border-color: #e8202f; color: #fff; }
+html[data-theme="light"] .st-tile, html[data-theme="light"] .st-week { background: #f4f3f8; border-color: #eeedf5; }
+html[data-theme="light"] .st-week .st-c { background: #ffffff; }
+/* full-screen overlays stay dark in both themes */
+html[data-theme="light"] .st-cel { color: #fff; }
+html[data-theme="light"] .st-cel .st-panel { background: #16161f; border-color: #24242f; box-shadow: none; }
+html[data-theme="light"] .st-cel .st-c { background: #1f1f2a; color: #fff; border: none; }
+html[data-theme="light"] .st-cel .st-c.on { background: #e8202f; }
+html[data-theme="light"] .nt-toast { box-shadow: 0 10px 30px rgba(20, 20, 45, 0.25); }
+html[data-theme="light"] .st-fill { background: #14141c; box-shadow: 0 0 12px rgba(20, 20, 28, 0.25); }

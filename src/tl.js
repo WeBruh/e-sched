@@ -53,8 +53,11 @@ const TL = {
   "Could not load your wallpaper.": "Hindi ma-load ang wallpaper mo.",
   "Backup saved to your Downloads folder.": "Na-save ang backup sa Downloads folder mo.",
   "Below the {n}% target. Another absence will hurt.": "Mas mababa sa target na {n}%. Masasaktan ang isa pang absent.",
+  "By subject": "Ayon sa asignatura",
+  "By day": "Ayon sa araw",
   "By weekday": "Kada araw ng linggo",
   "Calendar": "Kalendaryo",
+  "Classes": "Mga Klase",
   "Cancel": "Kanselahin",
   "Check in": "Mag-check in",
   "Check in before you're marked late": "Mag-check in bago ka maitalang late",
@@ -416,6 +419,11 @@ const TL = {
   "Every reason you give for being late, absent or excused shows up here. Pull a pin to put it away.": "Lahat ng dahilan mo sa pagiging late, absent, o excused ay lalabas dito. Hugutin ang pin para itabi ito.",
   "No reasons recorded yet.": "Wala pang naitalang dahilan.",
   "Every reason you give for being late, absent or excused shows up here.": "Lahat ng dahilan mo sa pagiging late, absent, o excused ay lalabas dito.",
+  "Theme": "Tema",
+  "Dark": "Madilim",
+  "Light": "Maliwanag",
+  "Same as my phone": "Ayon sa phone ko",
+  "Switch theme": "Palitan ang tema",
 };
 
 export default TL;
